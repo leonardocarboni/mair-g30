@@ -15,6 +15,11 @@ Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 # Creating the dataframe
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+from sklearn.neural_network import MLPClassifier
+
+
 d = pd.read_csv('dialog_acts.dat', header=None)
 df = pd.DataFrame(data=d)
 df.columns = ['dialog_act']
@@ -64,6 +69,8 @@ while True:
     print("1. Baseline 1")
     print("2. Baseline 2")
     print("3. Test")
+    print("4. Machine Learning 1")
+    print("5. Machine Learning 2")
     print("\n0. Exit")
 
     choice = input("Enter your choice: ")
@@ -133,5 +140,39 @@ while True:
         # sanity check for prediction size and test size
         print("Sanity Check", len(X_test), count + incorrect)
         print(count/len(X_test))  # accuracy
+        
+    elif choice == "4":
+        """
+        Machine Learning 1:
+        A machine learning system based on Logistic Regression.
+        """
+        print("\nML 1 - Logistic Regression")
+        
+        # create the model
+        LE = LabelEncoder()
+        Y_train_reshaped = LE.fit_transform(Y_train).reshape(-1, 1)
+        Y_test_reshaped = LE.fit_transform(Y_test).reshape(-1, 1)
+        
+        LR = LogisticRegression(random_state=0, solver='lbfgs', multi_class='multinomial').fit(Y_train_reshaped, X_train)
+        LR.predict(Y_test_reshaped)
+        print(round(LR.score(Y_test_reshaped,X_test), 4))
+        
+    elif choice == "5":
+        """
+        Machine Learning 2:
+        A machine learning system based on MLPC Classifier Neural Network.
+        """
+        print("\nML 2 - Neural Network")
+        
+        # create the model
+        LE = LabelEncoder()
+        Y_train_reshaped = LE.fit_transform(Y_train).reshape(-1, 1)
+        Y_test_reshaped = LE.fit_transform(Y_test).reshape(-1, 1)
+        
+        NN = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(150, 10), random_state=1).fit(Y_train_reshaped, X_train)
+        NN.predict(Y_test_reshaped)
+        print(round(NN.score(Y_test_reshaped,X_test), 4))
+        
+        
     else:
         break
