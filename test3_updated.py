@@ -40,20 +40,19 @@ majority = Y_train.mode()[0]
 classes = {
     'ack': ['ok', 'okay', "fine"],
     'affirm': ['yes', 'yeah', 'yep', 'sure', 'right', 'indeed'],
-    'bye': ['bye', 'goodbye', 'see you', 'see you later', 'talk to you later'],
-    'confirm': ['it is', 'there is', 'it does', 'they do', 'it is true',],
-    'deny': ['dont', 'don\'t', 'do not', 'does not', 'is not', 'was not', 'were not', 'are not', 'cannot', 'can not', 'cant', 'can\'t', 'no', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'no one', 'none', 'not a single', 'not any', 'not any more', 'not at all', 'not either', 'not at all', 'not ever', 'not in the least', 'not less than', 'not more than', 'not at all', 'not quite', 'not so', 'not yet', 'hardly', 'scarcely', 'barely', 'rarely', 'seldom', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', ],
-    'hello': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
-    'inform': ['look', 'looking for', 'search', 'find', 'want', 'need', 'require', 'requirement', 'requirements', 'want to', 'need to', 'require to', 'requirement to', 'requirements to', 'want to find', 'need to find', 'require to find', 'requirement to find', 'requirements to find', 'want to look', 'need to look', 'require to look', 'requirement to look', 'requirements to look', 'want to search', 'need to search', 'require to search', 'requirement to search', 'requirements to search', 'want to find', 'need to find', 'require to find', 'requirement to find', 'requirements to find', 'want to look', 'need to look', 'require to look', 'requirement to look', 'requirements to look', 'want to search', 'need to search', 'require to search', 'requirement to search', 'requirements to search', 'want to find', 'need to find', 'require to find', 'requirement to find', 'requirements to find', 'want to look', 'need to look', 'require to look', 'requirement to look', 'requirements to look', 'want to search', 'need to search', 'require to search', 'requirement to search', 'requirements to search', 'want to find', 'need to find', 'require to find', 'requirement to find', 'requirements to find', 'want to look', 'need to look', 'require to look', 'requirement to look', 'requirements to look', 'want to search', 'need to search', 'require to search', 'requirement to search', 'requirements to search', 'want to find', 'need to find', 'require to find', 'requirement to find', 'requirements to find', 'want to look', 'need to look', 'require to look', 'requirement to look', 'requirements to look', 'want to search', 'need to search', 'require to search', 'requirement to search', 'requirements to search', 'want to find', 'need to find', 'require to find', 'requirement to find', 'requirements to find', 'want to look', 'need to look', 'require to look', 'requirement to look', 'requirements to look', 'want to search', 'need to search', 'require to search', 'requirement to search', ],
+    'bye': ['bye', 'goodbye', 'see', 'talk'],
+    'confirm': ['true'],
+    'deny': [ 'don\'t','cannot', 'cant', 'can\'t', 'no', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'none', 'hardly', 'scarcely', 'barely', 'rarely', 'seldom', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', ],
+    'hello': ['hello', 'hi', 'hey', 'morning', 'afternoon', 'evening'],
+    'inform': ['look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'requirements'],
     'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing'],
-    'null': ['cough', 'clear throat', 'laugh', 'sigh', 'sniff'],
-    'repeat': ['again', 'repeat', 'what was that', 'what did you say', 'what did you mean'],
-    'reqalts': ['how about', 'alternatives', 'other options', 'other choices', 'other suggestions',
-                'another', 'different', 'else', 'other', 'anything else'],
-    'reqmore': ['more', 'else', 'another', 'different', 'anything else'],
-    'request': ["?", "what", "pub", "restaurant", "hotel", "attraction", "train", "taxi", "plane"],
-    'restart': ['start over', 'restart', 'start again', 'start from the beginning'],
-    'thankyou': ['thank you', 'thanks', 'thank you very much', 'thanks very much'],
+    'null': ['cough', 'clear', 'laugh', 'sigh', 'sniff', 'noise', 'sil', 'unintelligible'],
+    'repeat': ['again', 'repeat'],
+    'reqalts': ['about', 'alternatives', 'other','another', 'different', 'else', 'other'],
+    'reqmore': ['more', 'else', 'another', 'different', 'anything'],
+    'request': ["whats","?", "what", "train", "taxi", "plane", 'phone'],
+    'restart': ['start', 'restart', 'again', 'beginning'],
+    'thankyou': ['thank', 'thanks', 'thankyou'],
 }
 
 
@@ -91,14 +90,16 @@ while True:
         # Reading input and converting it in lower case
         prompt = input().lower()
 
-        nKeys = 0
-        for key, value in classes.items():
-            for v in value:
-                if v in prompt:
-                    print(key)
-                    nKeys += 1
+        found = 0 #did we found the word among our keywords?
+        for word in prompt.split(): #split prompt into words
+            if found == 1: #first match we found we are good to predict
+                break
+            for key, value in classes.items(): #look for the word in the dictionary
+                if word in value: #if we get a match
+                    found = 1 #flag on
+                    print(key) #predict the class from the dict
                     break
-        if nKeys == 0:
+        if found == 0: #if we didn't find a match, fall back to majority
             print(majority)
 
     elif choice == "3":
@@ -108,29 +109,27 @@ while True:
         count = 0 #correctly predicted
         incorrect = 0 #incorrectly predicted
         for i, x in enumerate(X_test): #for each test sentence
-            found = 0 #was there one of our keywords 
-            for key, value in classes.items():
+            found = 0 #did we found the word among our keywords?
+            for word in x.split(): #split sentence in words
                 if found == 1: #as soon as we found a match for one of our keyboard, go to next sentence
-                    break
-                for v in value: #for each keyword
-                    if v in x: #if the keyword is in the sentence
+                    break 
+                for key, value in classes.items():
+                    if word in value: #if the keyword is in the sentence
                         found = 1 #flag on
                         if key == Y_test.iloc[i]: #if the prediction is correct
-                            print("prediction: ", key, "; sentence: ", x, 'correct', "; actual class: ", Y_test.iloc[i])
                             count += 1
                             break
                         else: #if the prediction is incorrect
-                            print("prediction: ", key, "; sentence: ", x, 'incorrect', "; actual class: ", Y_test.iloc[i])
+                            #print("prediction: ", key, "; sentence: ", x, 'incorrect', "; actual class: ", Y_test.iloc[i])
                             incorrect += 1
                             break
             if found == 0: #if after going through the whole dictionary we didn't get a match with one of our keywords
                 if majority == Y_test.iloc[i]: #fallback, if it was the majority class
-                    print(majority, x, 'correct', Y_test.iloc[i])
                     count +=1
                 else: #if it wasn't
-                    print('fallback failed', x, Y_test.iloc[i])
+                    #print('fallback failed', x, Y_test.iloc[i])
                     incorrect += 1
-        print(len(X_test), count + incorrect) #sanity check for prediction size and test size
+        print("Sanity Check", len(X_test), count + incorrect) #sanity check for prediction size and test size
         print(count/len(X_test)) #accuracy
     else:
         break
