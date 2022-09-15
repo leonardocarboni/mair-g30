@@ -11,10 +11,10 @@ Part 1a: text classification
 Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 """
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
 
 # Creating the dataframe
+import pandas as pd
+from sklearn.model_selection import train_test_split
 d = pd.read_csv('dialog_acts.dat', header=None)
 df = pd.DataFrame(data=d)
 df.columns = ['dialog_act']
@@ -38,19 +38,19 @@ majority = Y_train.mode()[0]
 
 # Classes Dictionary
 classes = {
-    'ack': ['ok', 'okay', "fine"],
-    'affirm': ['yes', 'yeah', 'yep', 'sure', 'right', 'indeed'],
+    'ack': ['kay', 'okay', "fine", 'great', 'good'],
+    'affirm': ['yes', 'yeah', 'yep', 'right', 'indeed'],
     'bye': ['bye', 'goodbye', 'see', 'talk'],
-    'confirm': ['true'],
-    'deny': [ 'don\'t','cannot', 'cant', 'can\'t', 'no', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'none', 'hardly', 'scarcely', 'barely', 'rarely', 'seldom', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', 'tiniest', 'young', 'younger', 'youngest', 'little', 'less', 'least', 'few', 'fewer', 'fewest', 'short', 'shorter', 'shortest', 'low', 'lower', 'lowest', 'small', 'smaller', 'smallest', 'tiny', ],
+    'confirm': ['true', 'correct'],
+    'deny': ['don\'t', 'cannot', 'cant', 'can\'t', 'no', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'none', 'hardly'],
     'hello': ['hello', 'hi', 'hey', 'morning', 'afternoon', 'evening'],
-    'inform': ['look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'requirements'],
-    'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing'],
+    'inform': ['look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'west', 'east', 'north', 'south', 'restaurant', 'food', 'town'],
+    'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing', 'nah'],
     'null': ['cough', 'clear', 'laugh', 'sigh', 'sniff', 'noise', 'sil', 'unintelligible'],
     'repeat': ['again', 'repeat'],
-    'reqalts': ['about', 'alternatives', 'other','another', 'different', 'else', 'other'],
-    'reqmore': ['more', 'else', 'another', 'different', 'anything'],
-    'request': ["whats","?", "what", "train", "taxi", "plane", 'phone'],
+    'reqalts': ['about', 'alternatives', 'other', 'another', 'different', 'else', 'other'],
+    'reqmore': ['more'],
+    'request': ['whats', 'what\'s', 'restaurant', 'where' '?', 'what', 'train', 'taxi', 'plane', 'phone', 'how', 'why', 'can', 'number', 'price'],
     'restart': ['start', 'restart', 'again', 'beginning'],
     'thankyou': ['thank', 'thanks', 'thankyou'],
 }
@@ -90,46 +90,48 @@ while True:
         # Reading input and converting it in lower case
         prompt = input().lower()
 
-        found = 0 #did we found the word among our keywords?
-        for word in prompt.split(): #split prompt into words
-            if found == 1: #first match we found we are good to predict
+        found = 0  # did we found the word among our keywords?
+        for word in prompt.split():  # split prompt into words
+            if found == 1:  # first match we found we are good to predict
                 break
-            for key, value in classes.items(): #look for the word in the dictionary
-                if word in value: #if we get a match
-                    found = 1 #flag on
-                    print(key) #predict the class from the dict
+            for key, value in classes.items():  # look for the word in the dictionary
+                if word in value:  # if we get a match
+                    found = 1  # flag on
+                    print(key)  # predict the class from the dict
                     break
-        if found == 0: #if we didn't find a match, fall back to majority
+        if found == 0:  # if we didn't find a match, fall back to majority
             print(majority)
 
     elif choice == "3":
         """
         Testing baseline 2.
         """
-        count = 0 #correctly predicted
-        incorrect = 0 #incorrectly predicted
-        for i, x in enumerate(X_test): #for each test sentence
-            found = 0 #did we found the word among our keywords?
-            for word in x.split(): #split sentence in words
-                if found == 1: #as soon as we found a match for one of our keyboard, go to next sentence
-                    break 
+        count = 0  # correctly predicted
+        incorrect = 0  # incorrectly predicted
+        for i, x in enumerate(X_test):  # for each test sentence
+            found = 0  # did we found the word among our keywords?
+            for word in x.split():  # split sentence in words
+                if found == 1:  # as soon as we found a match for one of our keyboard, go to next sentence
+                    break
                 for key, value in classes.items():
-                    if word in value: #if the keyword is in the sentence
-                        found = 1 #flag on
-                        if key == Y_test.iloc[i]: #if the prediction is correct
+                    if word in value:  # if the keyword is in the sentence
+                        found = 1  # flag on
+                        if key == Y_test.iloc[i]:  # if the prediction is correct
                             count += 1
                             break
-                        else: #if the prediction is incorrect
+                        else:  # if the prediction is incorrect
                             #print("prediction: ", key, "; sentence: ", x, 'incorrect', "; actual class: ", Y_test.iloc[i])
                             incorrect += 1
                             break
-            if found == 0: #if after going through the whole dictionary we didn't get a match with one of our keywords
-                if majority == Y_test.iloc[i]: #fallback, if it was the majority class
-                    count +=1
-                else: #if it wasn't
+            if found == 0:  # if after going through the whole dictionary we didn't get a match with one of our keywords
+                # fallback, if it was the majority class
+                if majority == Y_test.iloc[i]:
+                    count += 1
+                else:  # if it wasn't
                     #print('fallback failed', x, Y_test.iloc[i])
                     incorrect += 1
-        print("Sanity Check", len(X_test), count + incorrect) #sanity check for prediction size and test size
-        print(count/len(X_test)) #accuracy
+        # sanity check for prediction size and test size
+        print("Sanity Check", len(X_test), count + incorrect)
+        print(count/len(X_test))  # accuracy
     else:
         break
