@@ -160,7 +160,7 @@ while True:
         train_data = cdf.transform(X_train.array) # convert train data into bag of words
         test_data = cdf.transform(X_test.array) # convert test data into bag of words
         # logistic regressor
-        LR = LogisticRegression(random_state=0, solver='newton-cg', multi_class='multinomial').fit(train_data.toarray(), Y_train_reshaped)
+        LR = LogisticRegression(random_state=0).fit(train_data.toarray(), Y_train_reshaped)
         LR.predict(test_data.toarray())
         print("R^2 is: ", round(LR.score(test_data.toarray(), Y_test_reshaped), 4)) # R^2 score
         
@@ -183,3 +183,4 @@ while True:
         
     else:
         break
+
