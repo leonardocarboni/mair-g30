@@ -225,7 +225,7 @@ while True:
         Y_train_reshaped = LE.fit_transform(Y_train)
         Y_test_reshaped = LE.fit_transform(Y_test)
         
-        # logistic regressor
+        # decision tree classifier
         clf = DecisionTreeClassifier(random_state=0).fit(train_data, Y_train_reshaped)
                 
         test_data = np.zeros((len(X_test), len(vocab)))
