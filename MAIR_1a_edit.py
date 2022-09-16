@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neural_network import MLPClassifier
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 d = pd.read_csv('dialog_acts.dat', header=None)
@@ -97,7 +98,7 @@ while True:
         # Reading input and converting it in lower case
         prompt = input().lower()
 
-        found = 0  # did we found the word among our keywords?
+        found = 0  # did we find the word among our keywords?
         for word in prompt.split():  # split prompt into words
             if found == 1:  # first match we found we are good to predict
                 break
@@ -116,7 +117,7 @@ while True:
         count = 0  # correctly predicted
         incorrect = 0  # incorrectly predicted
         for i, x in enumerate(X_test):  # for each test sentence
-            found = 0  # did we found the word among our keywords?
+            found = 0  # did we find the word among our keywords?
             for word in x.split():  # split sentence in words
                 if found == 1:  # as soon as we found a match for one of our keyboard, go to next sentence
                     break
@@ -149,13 +150,19 @@ while True:
         print("\nML 1 - Logistic Regression")
         
         # create the model
-        LE = LabelEncoder()
-        Y_train_reshaped = LE.fit_transform(Y_train).reshape(-1, 1)
-        Y_test_reshaped = LE.fit_transform(Y_test).reshape(-1, 1)
+        data = df['utterance_content'].array # get whole data to array
+        countvec = CountVectorizer() # instantiate vectorizer for bag of word conversion
+        cdf = countvec.fit(data) # build the bag of word dictionary
+        LE = LabelEncoder() # encode y labels
+        Y_train_reshaped = LE.fit_transform(Y_train)
+        Y_test_reshaped = LE.fit_transform(Y_test)
         
-        LR = LogisticRegression(random_state=0, solver='lbfgs', multi_class='multinomial').fit(Y_train_reshaped, X_train)
-        LR.predict(Y_test_reshaped)
-        print(round(LR.score(Y_test_reshaped,X_test), 4))
+        train_data = cdf.transform(X_train.array) # convert train data into bag of words
+        test_data = cdf.transform(X_test.array) # convert test data into bag of words
+        # logistic regressor
+        LR = LogisticRegression(random_state=0, solver='newton-cg', multi_class='multinomial').fit(train_data.toarray(), Y_train_reshaped)
+        LR.predict(test_data.toarray())
+        print("R^2 is: ", round(LR.score(test_data.toarray(), Y_test_reshaped), 4)) # R^2 score
         
     elif choice == "5":
         """
