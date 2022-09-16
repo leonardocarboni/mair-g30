@@ -14,12 +14,13 @@ Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 
 # Creating the dataframe
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
-from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_extraction.text import CountVectorizer
-
+from collections import defaultdict
 
 d = pd.read_csv('dialog_acts.dat', header=None)
 df = pd.DataFrame(data=d)
@@ -70,8 +71,8 @@ while True:
     print("1. Baseline 1")
     print("2. Baseline 2")
     print("3. Test")
-    print("4. Machine Learning 1")
-    print("5. Machine Learning 2")
+    print("4. Logistic Regression")
+    print("5. Decision Tree Classifier")
     print("\n0. Exit")
 
     choice = input("Enter your choice: ")
@@ -149,37 +150,108 @@ while True:
         """
         print("\nML 1 - Logistic Regression")
         
-        # create the model
-        data = df['utterance_content'].array # get whole data to array
-        countvec = CountVectorizer() # instantiate vectorizer for bag of word conversion
-        cdf = countvec.fit(data) # build the bag of word dictionary
+        # create the vocab
+        vocab = defaultdict(lambda: len(vocab)) # defaultdict to have indexes for each word
+        for sentence in X_train.array: # for each train sentence
+            for word in sentence.split(): # for each word
+                vocab[word] # build the vocab with progressive indexes
+        
+        vocab['NEW_WORD'] # special entry for unseen words
+        train_data = np.zeros((len(X_train), len(vocab))) # bag of word train
+        for i, sentence in enumerate(X_train.array):
+            for word in sentence.split():
+                if word in vocab:
+                    train_data[i][vocab[word]] += 1 # count words occurances 
+                else: # in train this should not occur
+                    train_data[i][vocab['NEW_WORD']] += 1 # count unseen words
+        
         LE = LabelEncoder() # encode y labels
         Y_train_reshaped = LE.fit_transform(Y_train)
         Y_test_reshaped = LE.fit_transform(Y_test)
         
-        train_data = cdf.transform(X_train.array) # convert train data into bag of words
-        test_data = cdf.transform(X_test.array) # convert test data into bag of words
         # logistic regressor
-        LR = LogisticRegression(random_state=0).fit(train_data.toarray(), Y_train_reshaped)
-        LR.predict(test_data.toarray())
-        print("R^2 is: ", round(LR.score(test_data.toarray(), Y_test_reshaped), 4)) # R^2 score
+        LR = LogisticRegression(random_state=0, max_iter = 500).fit(train_data, Y_train_reshaped)
+        
+        # same as before for test sentences
+        test_data = np.zeros((len(X_test), len(vocab)))
+        for i, sentence in enumerate(X_test.array):
+            for word in sentence.split():
+                if word in vocab:
+                    test_data[i][vocab[word]] += 1
+                else:
+                    test_data[i][vocab['NEW_WORD']] += 1
+        LR.predict(test_data)
+        print("R^2 is: ", round(LR.score(test_data, Y_test_reshaped), 4)) # R^2 score
+        
+        print("Now you can write a sentence or a word to test the model.")
+
+        # Reading input and converting it in lower case
+        prompt = input().lower()
+        print("The predicted class for the sentence is ")
+        
+        # creating bag of words for user input
+        user_data = np.zeros(len(vocab))
+        for word in prompt.split():
+            if word in vocab:
+                user_data[vocab[word]] += 1
+            else:
+                user_data[vocab['NEW_WORD']] += 1
+        print(LE.inverse_transform(LR.predict(user_data.reshape(1,-1)))) # predict class and print
+        
         
     elif choice == "5":
         """
         Machine Learning 2:
-        A machine learning system based on MLPC Classifier Neural Network.
+        A machine learning system based on a decision tree classifier.
         """
-        print("\nML 2 - Neural Network")
+        print("\nML 2 - Decision Tree")
         
-        # create the model
-        LE = LabelEncoder()
-        Y_train_reshaped = LE.fit_transform(Y_train).reshape(-1, 1)
-        Y_test_reshaped = LE.fit_transform(Y_test).reshape(-1, 1)
+        # much of the same as the previous model
+        vocab = defaultdict(lambda: len(vocab))
+        for sentence in X_train.array:
+            for word in sentence.split():
+                vocab[word]
         
-        NN = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(150, 10), random_state=1).fit(Y_train_reshaped, X_train)
-        NN.predict(Y_test_reshaped)
-        print(round(NN.score(Y_test_reshaped,X_test), 4))
+        vocab['NEW_WORD']
+        train_data = np.zeros((len(X_train), len(vocab)))
+        for i, sentence in enumerate(X_train.array):
+            for word in sentence.split():
+                if word in vocab:
+                    train_data[i][vocab[word]] += 1
+                else:
+                    train_data[i][vocab['NEW_WORD']] += 1
         
+        LE = LabelEncoder() # encode y labels
+        Y_train_reshaped = LE.fit_transform(Y_train)
+        Y_test_reshaped = LE.fit_transform(Y_test)
+        
+        # logistic regressor
+        clf = DecisionTreeClassifier(random_state=0).fit(train_data, Y_train_reshaped)
+                
+        test_data = np.zeros((len(X_test), len(vocab)))
+        for i, sentence in enumerate(X_test.array):
+            for word in sentence.split():
+                if word in vocab:
+                    test_data[i][vocab[word]] += 1
+                else:
+                    test_data[i][vocab['NEW_WORD']] += 1
+        clf.predict(test_data)
+        print("R^2 is: ", round(clf.score(test_data, Y_test_reshaped), 4)) # R^2 score
+        
+        print("Now you can write a sentence or a word to test the model.")
+
+        # Reading input and converting it in lower case
+        prompt = input().lower()
+        print("The predicted class for the sentence is ")
+        
+        user_data = np.zeros(len(vocab))
+        for word in prompt.split():
+            if word in vocab:
+                user_data[vocab[word]] += 1
+            else:
+                user_data[vocab['NEW_WORD']] += 1
+        print(LE.inverse_transform(clf.predict(user_data.reshape(1,-1))))
+                
         
     else:
         break
