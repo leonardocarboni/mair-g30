@@ -177,6 +177,17 @@ def transition(old_state):
                 return 5
         return 4
     elif old_state == 5:
+        # see if there is one matching restaurant after two preferences
+        if len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food'])]) == 1:
+            informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food'])].to_numpy()
+            return 6
+        elif len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])]) == 1:
+            informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
+            return 6
+        elif len(restaurants[(restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])]) == 1:
+            informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
+            return 6
+        
         # find all restaurants that match the criteria
         informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
         if len(informations['suitable_list']) == 0:
