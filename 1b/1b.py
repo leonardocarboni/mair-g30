@@ -105,34 +105,32 @@ def extract_params(ui_split):
 
 def lookup_restaurants():
     
-    # see if there is one matching restaurant after two preferences
-    if len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food'])]) == 1:
-        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
-            restaurants['food'] == informations['food'])].to_numpy()
-    elif len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])]) == 1:
-        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
-            restaurants['pricerange'] == informations['price'])].to_numpy()
-    elif len(restaurants[(restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])]) == 1:
-        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
-            restaurants['pricerange'] == informations['price'])].to_numpy()
-    # find all restaurants that match the criteria
-    else:
-        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
-            restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
-
+    food_filter = [1] * len(restaurants)
+    price_filter = [1] * len(restaurants)
+    area_filter = [1] * len(restaurants)
+    
+    if informations['food'] is not None:
+        food_filter = restaurants['food'] == informations['food']
+    if informations['price'] is not None:
+        price_filter = restaurants['pricerange'] == informations['price']
+    if informations['area'] is not None:
+        area_filter = restaurants['area'] == informations['area']
+    
+    # print the restaurants that match the user's request on the specified parameters
+    informations['suitable_list'] = restaurants[food_filter & price_filter & area_filter]
 
 def transition(old_state):
     if old_state == 1:
         print_welcome()
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        print("DEBUG - input class: ", ui_class)
+        #print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
 
-            print("DEBUG - informations: ", informations)
+            #print("DEBUG - informations: ", informations)
 
             lookup_restaurants()
             if len(informations['suitable_list']) == 0:  # no restaurant found
@@ -158,13 +156,13 @@ def transition(old_state):
         print("What area would you like to eat in?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        print("DEBUG - input class: ", ui_class)
+        #print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
 
-            print("DEBUG - informations: ", informations)
+            #print("DEBUG - informations: ", informations)
 
             lookup_restaurants()  # update the list of suitable restaurants
             # only one restaurant found -> suggest restaurant
@@ -188,13 +186,13 @@ def transition(old_state):
         print("What type of food would you like to eat?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        print("DEBUG - input class: ", ui_class)
+        #print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
 
-            print("DEBUG - informations: ", informations)
+            #print("DEBUG - informations: ", informations)
 
             lookup_restaurants()
             # only one restaurant found -> suggest restaurant
@@ -214,13 +212,13 @@ def transition(old_state):
         print("What price range do you prefer?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        print("DEBUG - input class: ", ui_class)
+        #print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
 
-            print("DEBUG - informations: ", informations)
+            #print("DEBUG - informations: ", informations)
 
             lookup_restaurants()
             # only one restaurant found -> suggest restaurant
@@ -234,7 +232,7 @@ def transition(old_state):
                 return 5
         return 4
     elif old_state == 5:
-        restaurant = informations['suitable_list'][0]
+        restaurant = informations['suitable_list'].iloc[0]
 
         print(f"{restaurant[0]} is a nice place", end="")
         if informations['area'] != None:
