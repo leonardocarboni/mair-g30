@@ -21,8 +21,7 @@ states = {
     9: "GIVE_ADRESS",
     10: "GIVE_PHONE_NUMBER",
     11: "NO_ALTERNATIVES",
-    
-    15: "GOODBYE"
+    12: "GOODBYE"
 }
 
 # Classes Dictionary
@@ -162,7 +161,7 @@ def transition(old_state):
                 return 5
             
         if ui_class == 'bye':
-            return 15
+            return 12
         
         # if the class is not inform, loop back to the beginning
         return 1
@@ -319,7 +318,7 @@ def transition(old_state):
             # If there is no other restaurant, tell the user
             return 11
         if ui_class == 'bye':
-            return 15
+            return 12
         return 7
         
     elif old_state == 8:
@@ -349,7 +348,7 @@ def transition(old_state):
         print(".")
         return 7
     
-    elif old_state == 15:
+    elif old_state == 12:
         print("bye")
         return -1
     return old_state
