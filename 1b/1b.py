@@ -17,6 +17,12 @@ states = {
     5: "RESTAURANT_FOUND",
     6: "RESTAURANT_NOT_FOUND",
     7: "AWAIT_COMMAND",
+    8: "GIVE_POSTCODE",
+    9: "GIVE_ADRESS",
+    10: "GIVE_PHONE_NUMBER",
+    11: "NO_ALTERNATIVES",
+    
+    15: "GOODBYE"
 }
 
 # Classes Dictionary
@@ -31,9 +37,9 @@ classes = {
     'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing', 'nah'],
     'null': ['cough', 'clear', 'laugh', 'sigh', 'sniff', 'noise', 'sil', 'unintelligible'],
     'repeat': ['again', 'repeat'],
-    'reqalts': ['about', 'alternatives', 'other', 'another', 'different', 'else', 'other'],
+    'reqalts': ['alternatives', 'other', 'another', 'different', 'else', 'other'],
     'reqmore': ['more'],
-    'request': ['whats', 'what\'s', 'restaurant', 'where' '?', 'what', 'train', 'taxi', 'plane', 'phone', 'how', 'why', 'can', 'number', 'price'],
+    'request': ['where' '?', 'train', 'taxi', 'plane', 'phone', 'how', 'why', 'number', 'price', 'post', 'code', 'postcode', 'address', 'phonenumber'],
     'restart': ['start', 'restart', 'again', 'beginning'],
     'thankyou': ['thank', 'thanks', 'thankyou'],
 }
@@ -59,7 +65,7 @@ any_utterances = ['don\'t care', 'any', 'whatever']
 informations = {'food': None, 'area': None,
                 'price': None, 'suitable_list': None}
 
-restaurants = pd.read_csv('1b/restaurant_info.csv')
+restaurants = pd.read_csv('restaurant_info.csv')
 
 # suitable_restaurants = pd.DataFrame()
 
@@ -91,6 +97,8 @@ def extract_params(ui_split):
             informations['food'] = word
         elif word == 'food' and ui_split[i-1] not in price_ranges:
             informations['food'] = ui_split[i-1]
+        elif word == 'asian':
+            informations['food'] = 'asian oriental'  
 
         # price ranges
         if word in price_ranges:
@@ -101,6 +109,8 @@ def extract_params(ui_split):
         # areas
         if word in areas:
             informations['area'] = word
+        elif word == 'center':
+            informations['area'] = 'centre'
 
 
 def lookup_restaurants():
@@ -150,7 +160,10 @@ def transition(old_state):
                 return 4
             else:   # all preferences are given
                 return 5
-
+            
+        if ui_class == 'bye':
+            return 15
+        
         # if the class is not inform, loop back to the beginning
         return 1
 
@@ -244,13 +257,106 @@ def transition(old_state):
         if informations['food'] != None:
             print(f" serving {restaurant[3]} food", end="")
         print(".")
-        return 8
+        
+        return 7
+    
     elif old_state == 6:
+        print("I'm sorry but there is no restaurant", end="")
+        if informations['area'] != None:
+            print(f" in the {informations['area']} of town", end="")
+            informations['area'] = None
+        if informations['price'] != None:
+            print(f" in the {informations['price']} price range", end="")
+            informations['price'] = None
+        if informations['food'] != None:
+            print(f" serving {informations['food']} food", end="")
+            informations['food'] = None
+        print(".")
+        
+        return 7
+    
+    elif old_state == 7:
+        user_input = input().lower()
+        ui_class = extract_class(user_input)
+        print("DEBUG - input class: ", ui_class)
 
-        return 8
+        if ui_class == 'inform':
+            ui_split = user_input.split()
+            extract_params(ui_split)
+
+            print("DEBUG - informations: ", informations)
+
+            lookup_restaurants()
+            if len(informations['suitable_list']) == 0:  # no restaurant found
+                return 6
+            if len(informations['suitable_list']) == 1:  # only one restaurant found
+                return 5
+
+            if informations['area'] == None:  # area not specified -> ask area
+                return 2
+            # food type not specified -> ask food type
+            elif informations['food'] == None:
+                return 3
+            # price range not specified -> ask price range
+            elif informations['price'] == None:
+                return 4
+            else:   # all preferences are given
+                return 5
+            
+        if ui_class == 'request':
+            ui_split = user_input.split()
+            for i, word in enumerate(ui_split):
+                if word == 'postcode' or word == 'post':
+                    return 8
+                if word == 'address':
+                    print('help me 2.0')
+                    return 9
+                if word == 'phone' or word == 'phonenumber':
+                    return 10
+        if ui_class == 'reqalts':
+            # If there is another restaurant, recommend the different restaurant
+            
+            # If there is no other restaurant, tell the user
+            return 11
+        if ui_class == 'bye':
+            return 15
+        return 7
+        
+    elif old_state == 8:
+        restaurant = informations['suitable_list'].iloc[0]
+        print(f"The post code of {restaurant[0]} is {restaurant[6]}.")    
+        return 7
+    
+    elif old_state == 9:
+        restaurant = informations['suitable_list'].iloc[0]
+        print(f"The address of {restaurant[0]} is {restaurant[5]}.")
+        return 7
+    
+    elif old_state == 10:
+        restaurant = informations['suitable_list'].iloc[0]
+        print(f"The phone number of {restaurant[0]} is {restaurant[4]}.")
+        return 7
+    
+    elif old_state == 11:
+        restaurant = informations['suitable_list'].iloc[0]
+        print("Sorry but there is no other restaurant", end="")
+        if informations['area'] != None:
+            print(f" in the {restaurant[2]} of town", end="")
+        if informations['price'] != None:
+            print(f" in the {restaurant[1]} price range", end="")
+        if informations['food'] != None:
+            print(f" serving {restaurant[3]} food", end="")
+        print(".")
+        return 7
+    
+    elif old_state == 15:
+        print("bye")
+        return -1
     return old_state
 
 
 while True:
     new_state = transition(current_state)
+    if new_state == -1:
+        break
     current_state = new_state
