@@ -14,10 +14,9 @@ states = {
     2: "ASK_AREA",
     3: "ASK_FOOD",
     4: "ASK_PRICERANGE",
-    5: "CHECK_RESTAURANTS",
-    6: "RESTAURANT_FOUND",
-    7: "RESTAURANT_NOT_FOUND",
-    8: "AWAIT_COMMAND",
+    5: "RESTAURANT_FOUND",
+    6: "RESTAURANT_NOT_FOUND",
+    7: "AWAIT_COMMAND",
 }
 
 # Classes Dictionary
@@ -57,11 +56,13 @@ areas = ['west', 'east', 'north', 'south', 'centre']
 
 any_utterances = ['don\'t care', 'any', 'whatever']
 
-informations = {'food': None, 'area': None, 'price': None, 'suitable_list': None}
+informations = {'food': None, 'area': None,
+                'price': None, 'suitable_list': None}
 
-restaurants = pd.read_csv('restaurant_info.csv')
+restaurants = pd.read_csv('1b/restaurant_info.csv')
 
 # suitable_restaurants = pd.DataFrame()
+
 
 def print_welcome():
     print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
@@ -102,6 +103,24 @@ def extract_params(ui_split):
             informations['area'] = word
 
 
+def lookup_restaurants():
+    
+    # see if there is one matching restaurant after two preferences
+    if len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food'])]) == 1:
+        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
+            restaurants['food'] == informations['food'])].to_numpy()
+    elif len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])]) == 1:
+        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
+            restaurants['pricerange'] == informations['price'])].to_numpy()
+    elif len(restaurants[(restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])]) == 1:
+        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
+            restaurants['pricerange'] == informations['price'])].to_numpy()
+    # find all restaurants that match the criteria
+    else:
+        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (
+            restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
+
+
 def transition(old_state):
     if old_state == 1:
         print_welcome()
@@ -115,14 +134,24 @@ def transition(old_state):
 
             print("DEBUG - informations: ", informations)
 
-            if informations['area'] == None:
+            lookup_restaurants()
+            if len(informations['suitable_list']) == 0:  # no restaurant found
+                return 6
+            if len(informations['suitable_list']) == 1:  # only one restaurant found
+                return 5
+
+            if informations['area'] == None:  # area not specified -> ask area
                 return 2
+            # food type not specified -> ask food type
             elif informations['food'] == None:
                 return 3
+            # price range not specified -> ask price range
             elif informations['price'] == None:
                 return 4
-            else:
+            else:   # all preferences are given
                 return 5
+
+        # if the class is not inform, loop back to the beginning
         return 1
 
     elif old_state == 2:
@@ -137,13 +166,24 @@ def transition(old_state):
 
             print("DEBUG - informations: ", informations)
 
-            if informations['food'] == None:
+            lookup_restaurants()  # update the list of suitable restaurants
+            # only one restaurant found -> suggest restaurant
+            if len(informations['suitable_list']) == 1:
+                return 5
+            # no restaurants found -> inform user there are no restaurants
+            elif len(informations['suitable_list']) == 0:
+                return 6
+            # more than 1 restaurant found and food type not specified -> ask food type
+            elif informations['food'] == None:
                 return 3
+            # more than 1 restaurant found and price range not specified -> ask price range
             elif informations['price'] == None:
                 return 4
+            # more than 1 restaurant found and all preferences are specified -> list restaurantsÌ
             else:
                 return 5
         return 2
+
     elif old_state == 3:
         print("What type of food would you like to eat?")
         user_input = input().lower()
@@ -156,8 +196,17 @@ def transition(old_state):
 
             print("DEBUG - informations: ", informations)
 
-            if informations['price'] == None:
+            lookup_restaurants()
+            # only one restaurant found -> suggest restaurant
+            if len(informations['suitable_list']) == 1:
+                return 5
+            # no restaurants found -> inform user there are no restaurants
+            elif len(informations['suitable_list']) == 0:
+                return 6
+            # more than 1 restaurant found and price range not specified -> ask price range
+            elif informations['price'] == None:
                 return 4
+            # more than 1 restaurant found and all preferences are specified -> list restaurants
             else:
                 return 5
         return 3
@@ -173,52 +222,31 @@ def transition(old_state):
 
             print("DEBUG - informations: ", informations)
 
-            if informations['price'] != None:
+            lookup_restaurants()
+            # only one restaurant found -> suggest restaurant
+            if len(informations['suitable_list']) == 1:
+                return 5
+            # no restaurants found -> inform user there are no restaurants
+            elif len(informations['suitable_list']) == 0:
+                return 6
+            # more than 1 restaurant found and all preferences are specified -> list restaurants
+            else:
                 return 5
         return 4
     elif old_state == 5:
-        # see if there is one matching restaurant after two preferences
-        if len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food'])]) == 1:
-            informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food'])].to_numpy()
-            return 6
-        elif len(restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])]) == 1:
-            informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
-            return 6
-        elif len(restaurants[(restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])]) == 1:
-            informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
-            return 6
-        
-        # find all restaurants that match the criteria
-        informations['suitable_list'] = restaurants[(restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price'])].to_numpy()
-        if len(informations['suitable_list']) == 0:
-                return 7
-        else:
-            return 6
-        
-        # if len(restaurants.where((restaurants['area'] == informations['area']) & (restaurants['food'] == informations['food']))) == 1:
-        #     suitable_restaurants = [restaurants.where((restaurants['area'] == informations['area']) & (
-        #         restaurants['food'] == informations['food']))]
-        #     return 6
-        # elif len(restaurants.where((restaurants['area'] == informations['area']) & (restaurants['pricerange'] == informations['price']))) == 1:
-        #     suitable_restaurants = [restaurants.where((restaurants['area'] == informations['area']) & (
-        #         restaurants['pricerange'] == informations['price']))]
-        #     return 6
-        # elif len(restaurants.where((restaurants['food'] == informations['food']) & (restaurants['pricerange'] == informations['price']))) == 1:
-        #     suitable_restaurants = [restaurants.where((restaurants['area'] == informations['area']) & (
-        #         restaurants['pricerange'] == informations['price']))]
-        #     return 6
-        # else:
-        #     suitable_restaurants = restaurants.where((restaurants['area'] == informations['area']) and (
-        #         restaurants['food'] == informations['food']) and (restaurants['pricerange'] == informations['price']))
-        #     if len(suitable_restaurants) == 0:
-        #         return 7
-        #     else:
-        #         print("Here are the restaurants I found:")
-        #         print(suitable_restaurants)
-        #         return 6
+        restaurant = informations['suitable_list'][0]
+
+        print(f"{restaurant[0]} is a nice place", end="")
+        if informations['area'] != None:
+            print(f" in the {restaurant[2]} of town", end="")
+        if informations['price'] != None:
+            print(f" in the {restaurant[1]} price range", end="")
+        if informations['food'] != None:
+            print(f" serving {restaurant[3]} food", end="")
+        print(".")
+        return 8
     elif old_state == 6:
-        print("Here are the restaurants I found:")
-        print(informations['suitable_list'])
+
         return 8
     return old_state
 
