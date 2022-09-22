@@ -105,19 +105,21 @@ def extract_params(ui_split):
 
 def lookup_restaurants():
     
-    food_filter = [1] * len(restaurants)
-    price_filter = [1] * len(restaurants)
-    area_filter = [1] * len(restaurants)
+    food_filter = [True] * len(restaurants)
+    price_filter = [True] * len(restaurants)
+    area_filter = [True] * len(restaurants)
     
     if informations['food'] is not None:
-        food_filter = restaurants['food'] == informations['food']
+        food_filter = (restaurants['food'] == informations['food']).values.tolist()
     if informations['price'] is not None:
-        price_filter = restaurants['pricerange'] == informations['price']
+        price_filter = (restaurants['pricerange'] == informations['price']).values.tolist()
     if informations['area'] is not None:
-        area_filter = restaurants['area'] == informations['area']
+        area_filter = (restaurants['area'] == informations['area']).values.tolist()
+    
+    final_filter = [all(i) for i in zip(food_filter, price_filter, area_filter)]
     
     # print the restaurants that match the user's request on the specified parameters
-    informations['suitable_list'] = restaurants[food_filter & price_filter & area_filter]
+    informations['suitable_list'] = restaurants[final_filter]
 
 def transition(old_state):
     if old_state == 1:
