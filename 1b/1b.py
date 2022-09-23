@@ -7,6 +7,9 @@ Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 from cmath import inf
 import numpy as np
 import pandas as pd
+from functools import lru_cache
+
+
 
 states = {
     1: "WELCOME",
@@ -27,12 +30,12 @@ states = {
 # Classes Dictionary
 classes = {
     'ack': ['kay', 'okay', "fine", 'great', 'good'],
-    'affirm': ['yes', 'yeah', 'yep', 'right', 'indeed'],
     'bye': ['bye', 'goodbye', 'see', 'talk'],
+    'affirm': ['yes', 'yeah', 'yep', 'right', 'indeed'],
     'confirm': ['true', 'correct'],
     'deny': ['don\'t', 'cannot', 'cant', 'can\'t', 'no', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'none', 'hardly'],
     'hello': ['hello', 'hi', 'hey', 'morning', 'afternoon', 'evening'],
-    'inform': ['look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'west', 'east', 'north', 'south', 'restaurant', 'food', 'town'],
+    'inform': ['eat', 'look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'west', 'east', 'north', 'south', 'restaurant', 'food', 'town'],
     'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing', 'nah'],
     'null': ['cough', 'clear', 'laugh', 'sigh', 'sniff', 'noise', 'sil', 'unintelligible'],
     'repeat': ['again', 'repeat'],
@@ -67,8 +70,69 @@ informations = {'food': None, 'area': None,
 restaurants = pd.read_csv('restaurant_info.csv')
 
 # suitable_restaurants = pd.DataFrame()
+def lev_dist(a, b):
+    '''
+    This function will calculate the levenshtein distance between two input
+    strings a and b
+    
+    params:
+        a (String) : The first string you want to compare
+        b (String) : The second string you want to compare
+        
+    returns:
+        This function will return the distnace between string a and b.
+        
+    example:
+        a = 'stamp'
+        b = 'stomp'
+        lev_dist(a,b)
+        >> 1.0
+    '''
+    
+    @lru_cache(None)  # for memorization
+    def min_dist(s1, s2):
 
+        if s1 == len(a) or s2 == len(b):
+            return len(a) - s1 + len(b) - s2
 
+        # no change required
+        if a[s1] == b[s2]:
+            return min_dist(s1 + 1, s2 + 1)
+
+        return 1 + min(
+            min_dist(s1, s2 + 1),      # insert character
+            min_dist(s1 + 1, s2),      # delete character
+            min_dist(s1 + 1, s2 + 1),  # replace character
+        )
+
+    return min_dist(0, 0)
+
+# change each word to its closest match  among our keywords according to lev distance
+def change_to_lev(user_word):
+    if len(user_word) > 2: #only change if the word has 3 or more letters
+        min_dist = inf
+        new_word = None
+        # check the classes for classification purposes
+        for utt in classes:
+            for elem in classes[utt]:
+                if min_dist > lev_dist(user_word, elem) and lev_dist(user_word, elem) <= 1:
+                    new_word = elem
+                    min_dist = lev_dist(user_word, elem)
+        #check the food types, price ranges and areas for information extraction purposes
+        for food_type in food_types:
+          if min_dist > lev_dist(user_word, food_type) and lev_dist(user_word, food_type) <= 1:
+              new_word = food_type
+              min_dist = lev_dist(user_word, food_type)
+        for price in price_ranges:
+          if min_dist > lev_dist(user_word, price) and lev_dist(user_word, price) <= 1:
+              new_word = price
+              min_dist = lev_dist(user_word, price)
+        for area in areas:
+          if min_dist > lev_dist(user_word, area) and lev_dist(user_word, area) <= 1:
+              new_word = area
+              min_dist = lev_dist(user_word, area)
+        return new_word
+    return user_word
 def print_welcome():
     print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
 
@@ -82,6 +146,7 @@ def extract_class(user_input):
     :return: The key of the dictionary.
     """
     for word in user_input.split():  # split prompt into words
+        word = change_to_lev(word)
         for key, value in classes.items():  # look for the word in the dictionary
             if word in value:  # if we get a match
                 if key == "bye":
@@ -93,11 +158,12 @@ def extract_class(user_input):
 def extract_params(ui_split):
 
     for i, word in enumerate(ui_split):
+        word = change_to_lev(word)
         # type of food
         if word in food_types:
             informations['food'] = word
-        elif word == 'food' and ui_split[i-1] not in price_ranges:
-            informations['food'] = ui_split[i-1]
+        elif word == 'food' and change_to_lev(ui_split[i-1]) not in price_ranges:
+            informations['food'] = change_to_lev(ui_split[i-1])
         elif word == 'asian':
             informations['food'] = 'asian oriental'
 
@@ -142,7 +208,7 @@ def transition(current_state):
         print_welcome()
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        #print("DEBUG - input class: ", ui_class)
+        print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
@@ -177,7 +243,7 @@ def transition(current_state):
         print("What area would you like to eat in?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        #print("DEBUG - input class: ", ui_class)
+        print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
@@ -361,7 +427,6 @@ def transition(current_state):
         return 7
 
     elif current_state == 11:
-        restaurant = informations['suitable_list'].iloc[0]
         print("Sorry but there is no other restaurant", end="")
         if informations['area'] != None:
             print(f" in the {restaurant[2]} of town", end="")
