@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Part 1b: modelling and implementing a dialog management system
+Part 1c: Reasoning and configurability
 Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 """
 
@@ -8,7 +8,6 @@ from cmath import inf
 import numpy as np
 import pandas as pd
 from functools import lru_cache
-
 
 
 states = {
@@ -69,26 +68,39 @@ informations = {'food': None, 'area': None,
 
 restaurants = pd.read_csv('restaurant_info.csv')
 
-# suitable_restaurants = pd.DataFrame()
+
+# type of restaurant: ([true inference list], [false inference list])
+rules = {
+    "romantic": (["long stay"], ["busy"]),
+    "childern": ([], ["long stay"]),
+    "assigned seats": (["busy"], []),
+    "touristic": (["cheap", "good food"], ["romanian"]),
+}
+
+
+def print_welcome():
+    print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
+
+
 def lev_dist(a, b):
     '''
     This function will calculate the levenshtein distance between two input
     strings a and b
-    
+
     params:
         a (String) : The first string you want to compare
         b (String) : The second string you want to compare
-        
+
     returns:
         This function will return the distnace between string a and b.
-        
+
     example:
         a = 'stamp'
         b = 'stomp'
         lev_dist(a,b)
         >> 1.0
     '''
-    
+
     @lru_cache(None)  # for memorization
     def min_dist(s1, s2):
 
@@ -107,9 +119,15 @@ def lev_dist(a, b):
 
     return min_dist(0, 0)
 
-# change each word to its closest match  among our keywords according to lev distance
+
 def change_to_lev(user_word):
-    if len(user_word) > 2: #only change if the word has 3 or more letters
+    """
+    Change each word to its closest match  among our keywords according to lev distance.
+
+    :param user_word: the word that the user said
+    :return: the new word if the word is changed, otherwise it returns the original word.
+    """
+    if len(user_word) > 2:  # only change if the word has 3 or more letters
         min_dist = inf
         new_word = None
         # check the classes for classification purposes
@@ -118,23 +136,21 @@ def change_to_lev(user_word):
                 if min_dist > lev_dist(user_word, elem) and lev_dist(user_word, elem) <= 1:
                     new_word = elem
                     min_dist = lev_dist(user_word, elem)
-        #check the food types, price ranges and areas for information extraction purposes
+        # check the food types, price ranges and areas for information extraction purposes
         for food_type in food_types:
-          if min_dist > lev_dist(user_word, food_type) and lev_dist(user_word, food_type) <= 1:
-              new_word = food_type
-              min_dist = lev_dist(user_word, food_type)
+            if min_dist > lev_dist(user_word, food_type) and lev_dist(user_word, food_type) <= 1:
+                new_word = food_type
+                min_dist = lev_dist(user_word, food_type)
         for price in price_ranges:
-          if min_dist > lev_dist(user_word, price) and lev_dist(user_word, price) <= 1:
-              new_word = price
-              min_dist = lev_dist(user_word, price)
+            if min_dist > lev_dist(user_word, price) and lev_dist(user_word, price) <= 1:
+                new_word = price
+                min_dist = lev_dist(user_word, price)
         for area in areas:
-          if min_dist > lev_dist(user_word, area) and lev_dist(user_word, area) <= 1:
-              new_word = area
-              min_dist = lev_dist(user_word, area)
+            if min_dist > lev_dist(user_word, area) and lev_dist(user_word, area) <= 1:
+                new_word = area
+                min_dist = lev_dist(user_word, area)
         return new_word
     return user_word
-def print_welcome():
-    print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
 
 
 def extract_class(user_input):
