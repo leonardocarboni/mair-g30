@@ -152,7 +152,7 @@ while True:
         
         # create the vocab
         vocab = defaultdict(lambda: len(vocab)) # defaultdict to have indexes for each word
-        for sentence in X_train.array: # for each train sentence
+        for sentence in df['utterance_content'].array: # for each train sentence
             for word in sentence.split(): # for each word
                 vocab[word] # build the vocab with progressive indexes
         
