@@ -403,7 +403,7 @@ def transition(current_state):
         # reqmore not implemented bc it doesn't make sense
         elif ui_class == 'repeat':
             return prev_state
-        elif ui_class == 'bye':
+        elif ui_class == 'bye' or ui_class == 'thankyou':
             return 12
         return 7
 
