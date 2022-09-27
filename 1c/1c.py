@@ -149,7 +149,8 @@ def change_to_lev(user_word):
             if min_dist > lev_dist(user_word, area) and lev_dist(user_word, area) <= 1:
                 new_word = area
                 min_dist = lev_dist(user_word, area)
-        return new_word
+        if new_word is not None:
+            return new_word
     return user_word
 
 
