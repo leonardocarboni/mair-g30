@@ -1,53 +1,57 @@
 # -*- coding: utf-8 -*-
 """
-Part 1c: Reasoning and configurability
+Part 1b: modelling and implementing a dialog management system
 Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 """
 
 from cmath import inf
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+from collections import defaultdict
 from functools import lru_cache
 
+#logistic regression
+## LOOK UP PICKLE FOR PRE-TRAINING ##
+def train_logistic():
+    d = pd.read_csv('dialog_acts.dat', header=None)
+    df = pd.DataFrame(data=d)
+    df.columns = ['dialog_act']
 
-states = {
-    1: "WELCOME",
-    0: "ASK_INFORMATIONS",
-    2: "ASK_AREA",
-    3: "ASK_FOOD",
-    4: "ASK_PRICERANGE",
-    5: "RESTAURANT_FOUND",
-    6: "RESTAURANT_NOT_FOUND",
-    7: "AWAIT_COMMAND",
-    8: "GIVE_POSTCODE",
-    9: "GIVE_ADRESS",
-    10: "GIVE_PHONE_NUMBER",
-    11: "NO_ALTERNATIVES",
-    12: "GOODBYE"
-}
+    # Splitting the dataframe columns
+    df[['dialog_act', 'utterance_content']
+       ] = df.dialog_act.str.split(' ', 1, expand=True)
 
-# Classes Dictionary
-classes = {
-    'ack': ['kay', 'okay', "fine", 'great', 'good'],
-    'bye': ['bye', 'goodbye', 'see', 'talk'],
-    'affirm': ['yes', 'yeah', 'yep', 'right', 'indeed'],
-    'confirm': ['true', 'correct'],
-    'deny': ['don\'t', 'cannot', 'cant', 'can\'t', 'no', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'none', 'hardly'],
-    'hello': ['hello', 'hi', 'hey', 'morning', 'afternoon', 'evening'],
-    'inform': ['eat', 'look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'west', 'east', 'north', 'south', 'restaurant', 'food', 'town'],
-    'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing', 'nah'],
-    'null': ['cough', 'clear', 'laugh', 'sigh', 'sniff', 'noise', 'sil', 'unintelligible'],
-    'repeat': ['again', 'repeat'],
-    'reqalts': ['alternatives', 'other', 'another', 'different', 'else', 'other'],
-    'reqmore': ['more'],
-    'request': ['where' '?', 'train', 'taxi', 'plane', 'phone', 'how', 'why', 'number', 'price', 'post', 'code', 'postcode', 'address', 'phonenumber'],
-    'restart': ['start', 'restart', 'again', 'beginning'],
-    'thankyou': ['thank', 'thanks', 'thankyou'],
-}
+    # Lowercasing the content
+    df['dialog_act'] = df['dialog_act'].str.lower()
+    df['utterance_content'] = df['utterance_content'].str.lower()
 
+    # Splitting the dataframe into train and test
+    X_train, X_test, Y_train, Y_test = train_test_split(df['utterance_content'],
+                                                    df['dialog_act'],
+                                                    test_size=0.15,
+                                                    random_state=42)
+    vocab = defaultdict(lambda: len(vocab)) # defaultdict to have indexes for each word
+    for sentence in df['utterance_content'].array: # for each train sentence
+        for word in sentence.split(): # for each word
+            vocab[word] # build the vocab with progressive indexes
+        
+    vocab['NEW_WORD'] # special entry for unseen words
+    train_data = np.zeros((len(X_train), len(vocab))) # bag of word train
+    for i, sentence in enumerate(X_train.array):
+        for word in sentence.split():
+            if word in vocab:
+                train_data[i][vocab[word]] += 1 # count words occurances 
+            else: # in train this should not occur
+                train_data[i][vocab['NEW_WORD']] += 1 # count unseen words
+        
+    LE = LabelEncoder() # encode y labels
+    Y_train_reshaped = LE.fit_transform(Y_train)
+    return (LogisticRegression(random_state=0, max_iter = 500).fit(train_data, Y_train_reshaped), vocab, LE)
 
 prev_state = 1
-majority = "inform"
 
 food_types = ['british', 'modern european', 'italian', 'romanian', 'seafood',
               'chinese', 'steakhouse', 'asian oriental', 'french', 'portuguese', 'indian',
@@ -68,39 +72,26 @@ informations = {'food': None, 'area': None,
 
 restaurants = pd.read_csv('restaurant_info.csv')
 
-
-# type of restaurant: ([true inference list], [false inference list])
-rules = {
-    "romantic": (["long stay"], ["busy"]),
-    "childern": ([], ["long stay"]),
-    "assigned seats": (["busy"], []),
-    "touristic": (["cheap", "good food"], ["romanian"]),
-}
-
-
-def print_welcome():
-    print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
-
-
+# suitable_restaurants = pd.DataFrame()
 def lev_dist(a, b):
     '''
     This function will calculate the levenshtein distance between two input
     strings a and b
-
+    
     params:
         a (String) : The first string you want to compare
         b (String) : The second string you want to compare
-
+        
     returns:
         This function will return the distnace between string a and b.
-
+        
     example:
         a = 'stamp'
         b = 'stomp'
         lev_dist(a,b)
         >> 1.0
     '''
-
+    
     @lru_cache(None)  # for memorization
     def min_dist(s1, s2):
 
@@ -119,39 +110,37 @@ def lev_dist(a, b):
 
     return min_dist(0, 0)
 
-
+# change each word to its closest match  among our keywords according to lev distance
 def change_to_lev(user_word):
-    """
-    Change each word to its closest match  among our keywords according to lev distance.
-
-    :param user_word: the word that the user said
-    :return: the new word if the word is changed, otherwise it returns the original word.
-    """
-    if len(user_word) > 2:  # only change if the word has 3 or more letters
+    if len(user_word) > 3: # only change if the word has 4 or more letters (if 3, eat -> east and it's annoying, with baseline2 it's easier to just treat it as special case)
         min_dist = inf
         new_word = None
-        # check the classes for classification purposes
-        for utt in classes:
-            for elem in classes[utt]:
-                if min_dist > lev_dist(user_word, elem) and lev_dist(user_word, elem) <= 1:
-                    new_word = elem
-                    min_dist = lev_dist(user_word, elem)
-        # check the food types, price ranges and areas for information extraction purposes
+        #check the food types, price ranges and areas for information extraction purposes
         for food_type in food_types:
-            if min_dist > lev_dist(user_word, food_type) and lev_dist(user_word, food_type) <= 1:
-                new_word = food_type
-                min_dist = lev_dist(user_word, food_type)
+          if min_dist > lev_dist(user_word, food_type) and lev_dist(user_word, food_type) <= 1:
+              new_word = food_type
+              min_dist = lev_dist(user_word, food_type)
         for price in price_ranges:
-            if min_dist > lev_dist(user_word, price) and lev_dist(user_word, price) <= 1:
-                new_word = price
-                min_dist = lev_dist(user_word, price)
+          if min_dist > lev_dist(user_word, price) and lev_dist(user_word, price) <= 1:
+              new_word = price
+              min_dist = lev_dist(user_word, price)
         for area in areas:
-            if min_dist > lev_dist(user_word, area) and lev_dist(user_word, area) <= 1:
-                new_word = area
-                min_dist = lev_dist(user_word, area)
+          if min_dist > lev_dist(user_word, area) and lev_dist(user_word, area) <= 1:
+              new_word = area
+              min_dist = lev_dist(user_word, area)
         if new_word is not None:
             return new_word
     return user_word
+# type of restaurant: ([true inference list], [false inference list])
+rules = {
+    "romantic": (["long stay"], ["busy"]),
+    "childern": ([], ["long stay"]),
+    "assigned seats": (["busy"], []),
+    "touristic": (["cheap", "good food"], ["romanian"]),
+}
+
+def print_welcome():
+    print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
 
 
 def extract_class(user_input):
@@ -162,16 +151,14 @@ def extract_class(user_input):
     :param user_input: the user's input
     :return: The key of the dictionary.
     """
-    for word in user_input.split():  # split prompt into words
+    user_data = np.zeros(len(vocab))
+    for word in user_input.split():
         word = change_to_lev(word)
-        for key, value in classes.items():  # look for the word in the dictionary
-            if word in value:  # if we get a match
-                if key == "bye":
-                    current_state = 12
-                return(key)  # predict the class from the dict
-    return(majority)
-
-
+        if word in vocab:
+            user_data[vocab[word]] += 1
+        else:
+            user_data[vocab['NEW_WORD']] += 1
+    return LE.inverse_transform(model.predict(user_data.reshape(1,-1)))
 def extract_params(ui_split):
 
     for i, word in enumerate(ui_split):
@@ -424,7 +411,7 @@ def transition(current_state):
         # reqmore not implemented bc it doesn't make sense
         elif ui_class == 'repeat':
             return prev_state
-        elif ui_class == 'bye':
+        elif ui_class == 'bye' or ui_class == 'thankyou':
             return 12
         return 7
 
@@ -459,9 +446,11 @@ def transition(current_state):
         return -1
     return current_state
 
+model, vocab, LE = train_logistic()
 
 while True:
     new_state = transition(prev_state)
     if new_state == -1:
         break
     prev_state = new_state
+
