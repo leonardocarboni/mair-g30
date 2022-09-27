@@ -14,6 +14,7 @@ from collections import defaultdict
 from functools import lru_cache
 
 #logistic regression
+## LOOK UP PICKLE FOR PRE-TRAINING ##
 def train_logistic():
     d = pd.read_csv('dialog_acts.dat', header=None)
     df = pd.DataFrame(data=d)

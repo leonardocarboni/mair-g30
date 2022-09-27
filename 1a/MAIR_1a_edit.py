@@ -111,7 +111,7 @@ while True:
         if found == 0:  # if we didn't find a match, fall back to majority
             print(majority)
 
-    elif choice == "3":
+    elif choice == "3": # remember to print a whole report of evaluation metrics using the function provided in the feedback
         """
         Testing baseline 2.
         """
