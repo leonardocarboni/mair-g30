@@ -84,21 +84,7 @@ def lev_dist(a, b):
     '''
     This function will calculate the levenshtein distance between two input
     strings a and b
-
-    params:
-        a (String) : The first string you want to compare
-        b (String) : The second string you want to compare
-
-    returns:
-        This function will return the distnace between string a and b.
-
-    example:
-        a = 'stamp'
-        b = 'stomp'
-        lev_dist(a,b)
-        >> 1.0
     '''
-
     @lru_cache(None)  # for memorization
     def min_dist(s1, s2):
 
@@ -156,13 +142,7 @@ def print_welcome():
 
 
 def extract_class(user_input):
-    """
-    For each word in the user input, look for that word in the dictionary. If you find it, return the
-    key (the class) associated with that word. If you don't find it, return the majority class
 
-    :param user_input: the user's input
-    :return: The key of the dictionary.
-    """
     user_data = np.zeros(len(vocab))
     for word in user_input.split():
         word = change_to_lev(word)
@@ -197,20 +177,19 @@ def extract_params(ui_split):
         elif word == 'center':
             informations['area'] = 'centre'
 
-def manage_requirements(preference):
-    print(f"DEBUG: requirement chosen :  {preference}")
-    if preference == 'romantic':
+def manage_requirements():
+    if informations['extra'] == 'romantic':
         informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['stay_length'] == 'long stay']
-        informations['extra'] = "The restaurant is romantic because it allows you to stay for a long time."
-    if preference == 'children':
+        return "The restaurant is romantic because it allows you to stay for a long time."
+    if informations['extra'] == 'children':
         informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['stay_length'] == 'short stay']
-        informations['extra'] = "The restaurant is for children because it allows you to stay for a short time."
-    if preference == 'assigned seats':
+        return "The restaurant is for children because it allows you to stay for a short time."
+    if informations['extra'] == 'assigned seats':
         informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['crowdedness'] == 'busy']
-        informations['extra'] = "The restaurant allows for assigned seats because it is usually busy."
-    if preference == 'touristic':
+        return "The restaurant allows for assigned seats because it is usually busy."
+    if informations['extra'] == 'touristic':
         informations['suitable_list'] = informations['suitable_list'][(informations['suitable_list']['pricerange'] == 'cheap') & (informations['suitable_list']['food_quality'] == 'good food')]
-        informations['extra'] = "The restaurant is touristic because it is cheap and it serves good food."
+        return "The restaurant is touristic because it is cheap and it serves good food."
 
 
 def lookup_restaurants():
@@ -367,8 +346,10 @@ def transition(current_state):
         print("Do you have additional requirements?")
         return 7
     elif current_state == 5:
+        req_string = manage_requirements()
+        if len(informations['suitable_list']) == 0:
+            return 6
         restaurant = informations['suitable_list'].iloc[0]
-
         print(f"{restaurant[0]} is a nice place", end="")
         if informations['area'] != None:
             print(f" in the {restaurant[2]} of town", end="")
@@ -377,21 +358,18 @@ def transition(current_state):
         if informations['food'] != None:
             print(f" serving {restaurant[3]} food", end="")
         print(".")
-        if informations['extra'] != None:
-            print(informations['extra'])
+        if req_string != None:
+            print(req_string)
         return 7
 
     elif current_state == 6:
         print("I'm sorry but there is no restaurant", end="")
         if informations['area'] != None:
             print(f" in the {informations['area']} of town", end="")
-            informations['area'] = None
         if informations['price'] != None:
             print(f" in the {informations['price']} price range", end="")
-            informations['price'] = None
         if informations['food'] != None:
             print(f" serving {informations['food']} food", end="")
-            informations['food'] = None
         if informations['extra'] != None: # if there was a requirements but no restaurants met that requirement
             for word in informations['extra'].split(): # check what requirement was asked an build the answer string
                 if word == 'romantic' or word == 'touristic':
@@ -400,7 +378,7 @@ def transition(current_state):
                     print(f' that is also for {word}', end = "")
                 if word == 'assigned':
                     print(f' that also allows for {word} seats', end = "")
-            informations['extra'] = None # if there is no restaurant given the requirements, reset string for inference in case of future sugestions
+            informations['extra'] = None # if there is no restaurant given the requirements, reset string for inference in case of future suggestions
         print(".")
        
         return 7
@@ -417,37 +395,41 @@ def transition(current_state):
             
             extract_params(ui_split)
 
-            print("DEBUG - informations: ", informations)
+            
 
             lookup_restaurants()
+            print("DEBUG - informations: ", informations)
             if len(informations['suitable_list']) == 0:  # no restaurant found
                 return 6
             if len(informations['suitable_list']) == 1:  # only one restaurant found
                 return 5
 
-            if informations['area'] == None:  # area not specified -> ask area
+            # informations['extra'] = None
+            for word in ui_split:
+                if word in rules.keys():
+                    informations['extra'] = word
+            if informations['extra'] != None: #if a requirement was given suggest the restaurant
+                return 5
+            # if a requirement wasn't given, user is trying to change the main 3 infos and we go back
+
+            # these 3 checks are probably useless #
+            elif informations['area'] == None:  # area not specified -> ask area
                 return 2
-            # food type not specified -> ask food type
+            # # food type not specified -> ask food type
             elif informations['food'] == None:
                 return 3
-            # price range not specified -> ask price range
+            # # price range not specified -> ask price range
             elif informations['price'] == None:
                 return 4
-            else:   # all preferences are given
-                for word in ui_split:
-                    if word in rules.keys():
-                        manage_requirements(word)
-                if len(informations['suitable_list']) == 0:
-                    return 6
-                else:
-                    return 5
+            
+            else: #if we have all informations but a preference wasn't given, then we ask for them
+                return 91
         elif ui_class == 'request':
             ui_split = user_input.split()
             for i, word in enumerate(ui_split):
                 if word == 'postcode' or word == 'post':
                     return 8
                 if word == 'address':
-                    print('help me 2.0')
                     return 9
                 if word == 'phone' or word == 'phonenumber':
                     return 10
@@ -483,11 +465,20 @@ def transition(current_state):
     elif current_state == 11:
         print("Sorry but there is no other restaurant", end="")
         if informations['area'] != None:
-            print(f" in the {restaurant[2]} of town", end="")
+            print(f" in the {informations['area']} of town", end="")
         if informations['price'] != None:
-            print(f" in the {restaurant[1]} price range", end="")
+            print(f" in the {informations['price']} price range", end="")
         if informations['food'] != None:
-            print(f" serving {restaurant[3]} food", end="")
+            print(f" serving {informations['food']} food", end="")
+        if informations['extra'] != None: # if there was a requirements but no restaurants met that requirement
+            for word in informations['extra'].split(): # check what requirement was asked an build the answer string
+                if word == 'romantic' or word == 'touristic':
+                    print(f' that is also {word}', end = "")
+                if word == 'children':
+                    print(f' that is also for {word}', end = "")
+                if word == 'assigned':
+                    print(f' that also allows for {word} seats', end = "")
+            informations['extra'] = None
         print(".")
         return 7
 
