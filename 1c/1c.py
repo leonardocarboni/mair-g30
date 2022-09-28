@@ -30,9 +30,9 @@ areas = ['west', 'east', 'north', 'south', 'centre']
 any_utterances = ['don\'t care', 'any', 'whatever']
 
 informations = {'food': None, 'area': None,
-                'price': None, 'suitable_list': None}
+                'price': None, 'suitable_list': None, 'extra': None}
 
-restaurants = pd.read_csv('restaurant_info.csv')
+restaurants = pd.read_csv('restaurant_info2.csv')
 
 
 # logistic regression
@@ -145,7 +145,7 @@ def change_to_lev(user_word):
 # type of restaurant: ([true inference list], [false inference list])
 rules = {
     "romantic": (["long stay"], ["busy"]),
-    "childern": (["short stay"], ["long stay"]),
+    "children": (["short stay"], ["long stay"]),
     "assigned seats": (["busy"], ["not busy"]),
     "touristic": (["cheap", "good food"], ["romanian"]),
 }
@@ -196,6 +196,21 @@ def extract_params(ui_split):
             informations['area'] = word
         elif word == 'center':
             informations['area'] = 'centre'
+
+def manage_requirements(preference):
+    print(f"DEBUG: requirement chosen :  {preference}")
+    if preference == 'romantic':
+        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['stay_length'] == 'long stay']
+        informations['extra'] = "The restaurant is romantic because it allows you to stay for a long time."
+    if preference == 'children':
+        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['stay_length'] == 'short stay']
+        informations['extra'] = "The restaurant is for children because it allows you to stay for a short time."
+    if preference == 'assigned seats':
+        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['crowdedness'] == 'busy']
+        informations['extra'] = "The restaurant allows for assigned seats because it is usually busy."
+    if preference == 'touristic':
+        informations['suitable_list'] = informations['suitable_list'][(informations['suitable_list']['pricerange'] == 'cheap') & (informations['suitable_list']['food_quality'] == 'good food')]
+        informations['extra'] = "The restaurant is touristic because it is cheap and it serves good food."
 
 
 def lookup_restaurants():
@@ -350,7 +365,7 @@ def transition(current_state):
         return current_state
     elif current_state == 91:
         print("Do you have additional requirements?")
-        return 5
+        return 7
     elif current_state == 5:
         restaurant = informations['suitable_list'].iloc[0]
 
@@ -362,7 +377,8 @@ def transition(current_state):
         if informations['food'] != None:
             print(f" serving {restaurant[3]} food", end="")
         print(".")
-
+        if informations['extra'] != None:
+            print(informations['extra'])
         return 7
 
     elif current_state == 6:
@@ -376,8 +392,17 @@ def transition(current_state):
         if informations['food'] != None:
             print(f" serving {informations['food']} food", end="")
             informations['food'] = None
+        if informations['extra'] != None: # if there was a requirements but no restaurants met that requirement
+            for word in informations['extra'].split(): # check what requirement was asked an build the answer string
+                if word == 'romantic' or word == 'touristic':
+                    print(f' that is also {word}', end = "")
+                if word == 'children':
+                    print(f' that is also for {word}', end = "")
+                if word == 'assigned':
+                    print(f' that also allows for {word} seats', end = "")
+            informations['extra'] = None # if there is no restaurant given the requirements, reset string for inference in case of future sugestions
         print(".")
-
+       
         return 7
 
     elif current_state == 7:
@@ -387,8 +412,9 @@ def transition(current_state):
         print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
-            ui_split = user_input.split()
 
+            ui_split = user_input.split()
+            
             extract_params(ui_split)
 
             print("DEBUG - informations: ", informations)
@@ -408,8 +434,13 @@ def transition(current_state):
             elif informations['price'] == None:
                 return 4
             else:   # all preferences are given
-                return 5
-
+                for word in ui_split:
+                    if word in rules.keys():
+                        manage_requirements(word)
+                if len(informations['suitable_list']) == 0:
+                    return 6
+                else:
+                    return 5
         elif ui_class == 'request':
             ui_split = user_input.split()
             for i, word in enumerate(ui_split):
