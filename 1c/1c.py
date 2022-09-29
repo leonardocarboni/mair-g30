@@ -82,7 +82,7 @@ restaurants = pd.read_csv('restaurant_info2.csv')
 rules = {
     "romantic": (["long stay"], ["busy"]),
     "children": (["short stay"], ["long stay"]),
-    "assigned seats": (["busy"], ["not busy"]),
+    "assigned": (["busy"], ["not busy"]),
     "touristic": (["cheap", "good food"], ["romanian"]),
 }
 
@@ -273,7 +273,7 @@ def manage_requirements():
         informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']
                                                                       ['stay_length'] == 'short stay']
         return "The restaurant is for children because it allows you to stay for a short time."
-    if informations['extra'] == 'assigned seats':
+    if informations['extra'] == 'assigned':
         informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']
                                                                       ['crowdedness'] == 'busy']
         return "The restaurant allows for assigned seats because it is usually busy."
@@ -315,7 +315,7 @@ def transition(current_state):
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
-        if ui_class == 'inform':
+        if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
@@ -350,7 +350,7 @@ def transition(current_state):
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
-        if ui_class == 'inform':
+        if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()  # update the list of suitable restaurants
@@ -383,7 +383,7 @@ def transition(current_state):
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
-        if ui_class == 'inform':
+        if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
@@ -413,7 +413,7 @@ def transition(current_state):
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
-        if ui_class == 'inform':
+        if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
