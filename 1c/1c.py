@@ -31,8 +31,31 @@ class State(Enum):
     BYE = 13
     KILL = -1
 
+classes = {
+    'ack': ['kay', 'okay', "fine", 'great', 'good'],
+    'bye': ['bye', 'goodbye', 'see', 'talk'],
+    'affirm': ['yes', 'yeah', 'yep', 'right', 'indeed'],
+    'confirm': ['true', 'correct'],
+    'deny': ['don\'t', 'cannot', 'cant', 'can\'t', 'nope', 'not', 'never', 'none', 'nobody', 'nothing', 'nowhere', 'neither', 'nor', 'never', 'none', 'hardly'],
+    'hello': ['hello', 'hi', 'hey', 'morning', 'afternoon', 'evening'],
+    'inform': ['eat', 'look', 'looking', 'search', 'find', 'want', 'need', 'require', 'requirement', 'west', 'east', 'north', 'south', 'restaurant', 'food', 'town'],
+    'negate': ['no', 'nope', 'not', 'never', 'none', 'nothing', 'nah'],
+    'null': ['cough', 'clear', 'laugh', 'sigh', 'sniff', 'noise', 'sil', 'unintelligible'],
+    'repeat': ['again', 'repeat'],
+    'reqalts': ['alternatives', 'other', 'another', 'different', 'else', 'other'],
+    'reqmore': ['more'],
+    'request': ['where' '?', 'train', 'taxi', 'plane', 'phone', 'how', 'why', 'number', 'price', 'post', 'code', 'postcode', 'address', 'phonenumber'],
+    'restart': ['start', 'restart', 'again', 'beginning'],
+    'thankyou': ['thank', 'thanks', 'thankyou'],
+}
 
 prev_state = State.WELCOME
+
+majority = "inform"
+
+chosen_model = 1 # logistic regression default
+
+auto_correction = True # use levenshtein edit distance or not
 
 food_types = ['british', 'modern european', 'italian', 'romanian', 'seafood',
               'chinese', 'steakhouse', 'asian oriental', 'french', 'portuguese', 'indian',
@@ -108,7 +131,6 @@ def train_logistic():
     return (LogisticRegression(random_state=0, max_iter=500).fit(train_data, Y_train_reshaped), vocab, LE)
 
 
-model, vocab, LE = train_logistic()
 
 
 def lev_dist(a, b):
@@ -164,7 +186,7 @@ def change_to_lev(user_word):
 
 
 def print_welcome():
-    print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
+    print("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?")
 
 
 def extract_class(user_input):
@@ -174,16 +196,24 @@ def extract_class(user_input):
     :param user_input: The user's input
     :return: The class of the input
     """
-
-    user_data = np.zeros(len(vocab))
-    for word in user_input.split():
-        word = change_to_lev(word)
-        if word in vocab:
-            user_data[vocab[word]] += 1
-        else:
-            user_data[vocab['NEW_WORD']] += 1
-    return LE.inverse_transform(model.predict(user_data.reshape(1, -1)))
-
+    if chosen_model == 1: #logistic regression
+        user_data = np.zeros(len(vocab))
+        for word in user_input.split():
+            if auto_correction:
+                word = change_to_lev(word)
+            if word in vocab:
+                user_data[vocab[word]] += 1
+            else:
+                user_data[vocab['NEW_WORD']] += 1
+        return LE.inverse_transform(model.predict(user_data.reshape(1, -1)))
+    else : # baseline 2
+        for word in user_input.split():  # split prompt into words
+            if auto_correction:
+                word = change_to_lev(word)
+            for key, value in classes.items():  # look for the word in the dictionary
+                if word in value:  # if we get a match
+                    return(key)  # predict the class from the dict
+        return(majority)
 
 def extract_params(ui_split):
     """
@@ -193,12 +223,16 @@ def extract_params(ui_split):
     :param ui_split: the user input split into a list of words
     """
     for i, word in enumerate(ui_split):
-        word = change_to_lev(word)
+        if auto_correction:
+            word = change_to_lev(word)
+            prev_word = change_to_lev(ui_split[i-1])
+        else:
+            prev_word = ui_split[i-1]
         # type of food
         if word in food_types:
             informations['food'] = word
-        elif word == 'food' and change_to_lev(ui_split[i-1]) not in price_ranges:
-            informations['food'] = change_to_lev(ui_split[i-1])
+        elif word == 'food' and prev_word not in price_ranges:
+            informations['food'] = prev_word
         elif word == 'asian':
             informations['food'] = 'asian oriental'
 
@@ -354,7 +388,7 @@ def transition(current_state):
                 return State.ASK_PRICE
             # more than 1 restaurant found and all preferences are specified -> list restaurants
             else:
-                return State.AWAIT_COMMAND
+                return State.ASK_REQUIREMENTS
 
         elif ui_class == 'bye':
             return State.BYE
@@ -491,7 +525,7 @@ def transition(current_state):
                 informations['suitable_list'] = informations['suitable_list'][1:]
                 return State.RESTAURANT_FOUND
             # If there is no other restaurant, tell the user
-            return State.NO_ALTERNATIVES
+            return State.NO_OTHER_RESTAURANTS
 
         # reqmore not implemented bc it doesn't make sense
 
@@ -560,7 +594,36 @@ def transition(current_state):
     return current_state
 
 
+
+# User Input
+print("\nChoose what you want to do:")
+print("1. Logistic Regression")
+print("2. Baseline 2")
+
+choice = input("Enter your choice: ")
+
+if choice == "1":
+    chosen_model = 1 # logistic regression
+
+elif choice == "2":
+    chosen_model = 2 # baseline 2
+
+print("\nDo you want spelling auto-correction?")
+print("1. Yes")
+print("2. No")
+
+choice = input("Enter your choice: ")
+
+if choice == "1":
+    auto_correction = True # logistic regression
+
+elif choice == "2":
+    auto_correction = False # baseline 2
 # main loop
+
+if chosen_model == 1:
+    model, vocab, LE = train_logistic()
+
 while True:
     new_state = transition(prev_state)
     if new_state == State.KILL:
