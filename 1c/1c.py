@@ -12,8 +12,27 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 from collections import defaultdict
 from functools import lru_cache
+from enum import Enum
 
-prev_state = 1
+
+class State(Enum):
+    WELCOME = 1
+    ASK_AREA = 2
+    ASK_FOOD = 3
+    ASK_PRICE = 4
+    ASK_REQUIREMENTS = 5
+    RESTAURANT_FOUND = 6
+    RESTAURANT_NOT_FOUND = 7
+    AWAIT_COMMAND = 8
+    PRINT_POSTCODE = 9
+    PRINT_ADDRESS = 10
+    PRINT_PHONENUMBER = 11
+    NO_OTHER_RESTAURANTS = 12
+    BYE = 13
+    KILL = -1
+
+
+prev_state = State.WELCOME
 
 food_types = ['british', 'modern european', 'italian', 'romanian', 'seafood',
               'chinese', 'steakhouse', 'asian oriental', 'french', 'portuguese', 'indian',
@@ -34,11 +53,24 @@ informations = {'food': None, 'area': None,
 
 restaurants = pd.read_csv('restaurant_info2.csv')
 
+# type of restaurant: ([true inference list], [false inference list])
+rules = {
+    "romantic": (["long stay"], ["busy"]),
+    "children": (["short stay"], ["long stay"]),
+    "assigned seats": (["busy"], ["not busy"]),
+    "touristic": (["cheap", "good food"], ["romanian"]),
+}
 
 # logistic regression
 ## LOOK UP PICKLE FOR PRE-TRAINING ##
 
+
 def train_logistic():
+    """
+    It reads the data, splits it into train and test, builds a vocabulary, and trains a logistic
+    regression model
+    :return: A tuple containing the trained model, the vocabulary and the label encoder.
+    """
     d = pd.read_csv('dialog_acts.dat', header=None)
     df = pd.DataFrame(data=d)
     df.columns = ['dialog_act']
@@ -79,7 +111,6 @@ def train_logistic():
 model, vocab, LE = train_logistic()
 
 
-# suitable_restaurants = pd.DataFrame()
 def lev_dist(a, b):
     '''
     This function will calculate the levenshtein distance between two input
@@ -103,10 +134,14 @@ def lev_dist(a, b):
 
     return min_dist(0, 0)
 
-# change each word to its closest match  among our keywords according to lev distance
-
 
 def change_to_lev(user_word):
+    """
+    Change each word to its closest match  among our keywords according to lev distance
+
+    :param user_word: the word that the user said
+    :return: the word that is closest to the user_word in terms of Levenshtein distance.
+    """
     if len(user_word) > 3:  # only change if the word has 4 or more letters (if 3, eat -> east and it's annoying, with baseline2 it's easier to just treat it as special case)
         min_dist = inf
         new_word = None
@@ -128,20 +163,17 @@ def change_to_lev(user_word):
     return user_word
 
 
-# type of restaurant: ([true inference list], [false inference list])
-rules = {
-    "romantic": (["long stay"], ["busy"]),
-    "children": (["short stay"], ["long stay"]),
-    "assigned seats": (["busy"], ["not busy"]),
-    "touristic": (["cheap", "good food"], ["romanian"]),
-}
-
-
 def print_welcome():
     print("Hello , welcome to the Cambridge restaurant system? You can ask for restaurants by area , price range or food type . How may I help you?")
 
 
 def extract_class(user_input):
+    """
+    It takes in a string, and returns the class that the model predicts
+
+    :param user_input: The user's input
+    :return: The class of the input
+    """
 
     user_data = np.zeros(len(vocab))
     for word in user_input.split():
@@ -154,7 +186,12 @@ def extract_class(user_input):
 
 
 def extract_params(ui_split):
+    """
+    It takes the user input and checks if it contains any of the keywords in the dictionaries. If it
+    does, it adds the keyword to the informations dictionary
 
+    :param ui_split: the user input split into a list of words
+    """
     for i, word in enumerate(ui_split):
         word = change_to_lev(word)
         # type of food
@@ -177,23 +214,35 @@ def extract_params(ui_split):
         elif word == 'center':
             informations['area'] = 'centre'
 
+
 def manage_requirements():
+    """
+    It takes the extra information and filters the suitable list based on that information
+    :return: a string that explains why the restaurant is suitable for the extra requirement.
+    """
     if informations['extra'] == 'romantic':
-        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['stay_length'] == 'long stay']
+        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']
+                                                                      ['stay_length'] == 'long stay']
         return "The restaurant is romantic because it allows you to stay for a long time."
     if informations['extra'] == 'children':
-        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['stay_length'] == 'short stay']
+        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']
+                                                                      ['stay_length'] == 'short stay']
         return "The restaurant is for children because it allows you to stay for a short time."
     if informations['extra'] == 'assigned seats':
-        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']['crowdedness'] == 'busy']
+        informations['suitable_list'] = informations['suitable_list'][informations['suitable_list']
+                                                                      ['crowdedness'] == 'busy']
         return "The restaurant allows for assigned seats because it is usually busy."
     if informations['extra'] == 'touristic':
-        informations['suitable_list'] = informations['suitable_list'][(informations['suitable_list']['pricerange'] == 'cheap') & (informations['suitable_list']['food_quality'] == 'good food')]
+        informations['suitable_list'] = informations['suitable_list'][(informations['suitable_list']['pricerange'] == 'cheap') & (
+            informations['suitable_list']['food_quality'] == 'good food')]
         return "The restaurant is touristic because it is cheap and it serves good food."
 
 
 def lookup_restaurants():
-
+    """
+    It filters the restaurants dataframe based on the user's input and stores the filtered dataframe in
+    the informations dictionary
+    """
     food_filter = [True] * len(restaurants)
     price_filter = [True] * len(restaurants)
     area_filter = [True] * len(restaurants)
@@ -216,141 +265,143 @@ def lookup_restaurants():
 
 
 def transition(current_state):
-    if current_state == 1:
+    if current_state == State.WELCOME:
         print_welcome()
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
-
-            #print("DEBUG - informations: ", informations)
-
             lookup_restaurants()
+
             if len(informations['suitable_list']) == 0:  # no restaurant found
-                return 6
+                return State.NO_RESTAURANT_FOUND
             if len(informations['suitable_list']) == 1:  # only one restaurant found
-                return 5
+                return State.RESTAURANT_FOUND
 
             if informations['area'] == None:  # area not specified -> ask area
-                return 2
+                return State.ASK_AREA
             # food type not specified -> ask food type
             elif informations['food'] == None:
-                return 3
+                return State.ASK_FOOD
             # price range not specified -> ask price range
             elif informations['price'] == None:
-                return 4
+                return State.ASK_PRICE
             else:  # all preferences are given and more than 1 restaurant found
-                return 91
+                return State.ASK_REQUIREMENTS
+
         elif ui_class == 'bye':
-            return 12
+            return State.BYE
+
         elif ui_class == 'repeat':
             return current_state
+
         # if the class is not inform, loop back to the beginning
         return current_state
 
-    elif current_state == 2:
+    elif current_state == State.ASK_AREA:
         print("What area would you like to eat in?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
-
-            #print("DEBUG - informations: ", informations)
-
             lookup_restaurants()  # update the list of suitable restaurants
+
             # only one restaurant found -> suggest restaurant
             if len(informations['suitable_list']) == 1:
-                return 5
+                return State.RESTAURANT_FOUND
             # no restaurants found -> inform user there are no restaurants
             elif len(informations['suitable_list']) == 0:
-                return 6
+                return State.RESTAURANT_NOT_FOUND
             # more than 1 restaurant found and food type not specified -> ask food type
             elif informations['food'] == None:
-                return 3
+                return State.ASK_FOOD
             # more than 1 restaurant found and price range not specified -> ask price range
             elif informations['price'] == None:
-                return 4
+                return State.ASK_PRICE
             # more than 1 restaurant found and all preferences are specified -> list restaurantsÌ
             else:
-                return 91
+                return State.ASK_REQUIREMENTS
+
         elif ui_class == 'bye':
-            return 12
+            return State.BYE
         elif ui_class == 'repeat':
             return current_state
+
         return current_state
 
-    elif current_state == 3:
+    elif current_state == State.ASK_FOOD:
         print("What type of food would you like to eat?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        #print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
-
-            #print("DEBUG - informations: ", informations)
-
             lookup_restaurants()
+
             # only one restaurant found -> suggest restaurant
             if len(informations['suitable_list']) == 1:
-                return 5
+                return State.RESTAURANT_FOUND
             # no restaurants found -> inform user there are no restaurants
             elif len(informations['suitable_list']) == 0:
-                return 6
+                return State.RESTAURANT_NOT_FOUND
             # more than 1 restaurant found and price range not specified -> ask price range
             elif informations['price'] == None:
-                return 4
+                return State.ASK_PRICE
             # more than 1 restaurant found and all preferences are specified -> list restaurants
             else:
-                return 91
+                return State.AWAIT_COMMAND
+
         elif ui_class == 'bye':
-            return 12
+            return State.BYE
         elif ui_class == 'repeat':
             return current_state
+
         return current_state
-    elif current_state == 4:
+
+    elif current_state == State.ASK_PRICE:
         print("What price range do you prefer?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
-        #print("DEBUG - input class: ", ui_class)
 
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
-
-            #print("DEBUG - informations: ", informations)
-
             lookup_restaurants()
+
             # only one restaurant found -> suggest restaurant
             if len(informations['suitable_list']) == 1:
-                return 5
+                return State.RESTAURANT_FOUND
             # no restaurants found -> inform user there are no restaurants
             elif len(informations['suitable_list']) == 0:
-                return 6
+                return State.RESTAURANT_NOT_FOUND
             # more than 1 restaurant found and all preferences are specified -> list restaurants
             else:
-                return 91
+                return State.ASK_REQUIREMENTS
+
         elif ui_class == 'bye':
-            return 12
+            return State.BYE
         elif ui_class == 'repeat':
             return current_state
+
         return current_state
-    elif current_state == 91:
+    elif current_state == State.ASK_REQUIREMENTS:
         print("Do you have additional requirements?")
-        return 7
-    elif current_state == 5:
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.RESTAURANT_FOUND:
         req_string = manage_requirements()
+
         if len(informations['suitable_list']) == 0:
-            return 6
+            return State.RESTAURANT_NOT_FOUND
+
         restaurant = informations['suitable_list'].iloc[0]
         print(f"{restaurant[0]} is a nice place", end="")
+
         if informations['area'] != None:
             print(f" in the {restaurant[2]} of town", end="")
         if informations['price'] != None:
@@ -358,11 +409,13 @@ def transition(current_state):
         if informations['food'] != None:
             print(f" serving {restaurant[3]} food", end="")
         print(".")
+
         if req_string != None:
             print(req_string)
-        return 7
 
-    elif current_state == 6:
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.RESTAURANT_NOT_FOUND:
         print("I'm sorry but there is no restaurant", end="")
         if informations['area'] != None:
             print(f" in the {informations['area']} of town", end="")
@@ -370,99 +423,113 @@ def transition(current_state):
             print(f" in the {informations['price']} price range", end="")
         if informations['food'] != None:
             print(f" serving {informations['food']} food", end="")
-        if informations['extra'] != None: # if there was a requirements but no restaurants met that requirement
-            for word in informations['extra'].split(): # check what requirement was asked an build the answer string
-                if word == 'romantic' or word == 'touristic':
-                    print(f' that is also {word}', end = "")
-                if word == 'children':
-                    print(f' that is also for {word}', end = "")
-                if word == 'assigned':
-                    print(f' that also allows for {word} seats', end = "")
-            informations['extra'] = None # if there is no restaurant given the requirements, reset string for inference in case of future suggestions
-        print(".")
-       
-        return 7
 
-    elif current_state == 7:
+        # if there was a requirements but no restaurants met that requirement
+        if informations['extra'] != None:
+            # check what requirement was asked an build the answer string
+            for word in informations['extra'].split():
+                if word == 'romantic' or word == 'touristic':
+                    print(f' that is also {word}', end="")
+                if word == 'children':
+                    print(f' that is also for {word}', end="")
+                if word == 'assigned':
+                    print(f' that also allows for {word} seats', end="")
+            # if there is no restaurant given the requirements, reset string for inference in case of future suggestions
+            informations['extra'] = None
+        print(".")
+
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.AWAIT_COMMAND:
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
-        print("DEBUG - input class: ", ui_class)
-
         if ui_class == 'inform':
-
             ui_split = user_input.split()
-            
             extract_params(ui_split)
-
-            
-
             lookup_restaurants()
-            print("DEBUG - informations: ", informations)
-            if len(informations['suitable_list']) == 0:  # no restaurant found
-                return 6
-            if len(informations['suitable_list']) == 1:  # only one restaurant found
-                return 5
 
-            # informations['extra'] = None
+            if len(informations['suitable_list']) == 0:  # no restaurant found
+                return State.RESTAURANT_NOT_FOUND
+            if len(informations['suitable_list']) == 1:  # only one restaurant found
+                return State.RESTAURANT_FOUND
+
             for word in ui_split:
                 if word in rules.keys():
                     informations['extra'] = word
-            if informations['extra'] != None: #if a requirement was given suggest the restaurant
-                return 5
-            # if a requirement wasn't given, user is trying to change the main 3 infos and we go back
 
+            # if a requirement was given suggest the restaurant
+            if informations['extra'] != None:
+                return State.RESTAURANT_FOUND
+            # if a requirement wasn't given, user is trying to change the main 3 infos and we go back
             # these 3 checks are probably useless #
             elif informations['area'] == None:  # area not specified -> ask area
-                return 2
+                return State.ASK_AREA
             # # food type not specified -> ask food type
             elif informations['food'] == None:
-                return 3
+                return State.ASK_FOOD
             # # price range not specified -> ask price range
             elif informations['price'] == None:
-                return 4
-            
-            else: #if we have all informations but a preference wasn't given, then we ask for them
-                return 91
+                return State.ASK_PRICE
+            else:  # if we have all informations but a preference wasn't given, then we ask for them
+                return State.ASK_REQUIREMENTS
+
         elif ui_class == 'request':
             ui_split = user_input.split()
-            for i, word in enumerate(ui_split):
+
+            for word in ui_split:
                 if word == 'postcode' or word == 'post':
-                    return 8
-                if word == 'address':
-                    return 9
-                if word == 'phone' or word == 'phonenumber':
-                    return 10
+                    return State.PRINT_POSTCODE
+                elif word == 'address':
+                    return State.PRINT_ADDRESS
+                elif word == 'phone' or word == 'phonenumber':
+                    return State.PRINT_PHONENUMBER
+
         elif ui_class == 'reqalts':
             # If there is another restaurant, recommend the different restaurant
             if len(informations['suitable_list']) > 1:
                 informations['suitable_list'] = informations['suitable_list'][1:]
-                return 5
+                return State.RESTAURANT_FOUND
             # If there is no other restaurant, tell the user
-            return 11
+            return State.NO_ALTERNATIVES
+
         # reqmore not implemented bc it doesn't make sense
+
+        elif ui_class == 'negate':
+            lookup_restaurants()
+
+            if len(informations['suitable_list']) == 0:  # no restaurant found
+                return State.RESTAURANT_NOT_FOUND
+            else:  # at least one restaurant found
+                return State.RESTAURANT_FOUND
+
         elif ui_class == 'repeat':
             return prev_state
-        elif ui_class == 'bye' or ui_class == 'thankyou':
-            return 12
-        return 7
 
-    elif current_state == 8:
+        elif ui_class == 'bye' or ui_class == 'thankyou':
+            return State.BYE
+
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.PRINT_POSTCODE:
         restaurant = informations['suitable_list'].iloc[0]
         print(f"The post code of {restaurant[0]} is {restaurant[6]}.")
-        return 7
 
-    elif current_state == 9:
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.PRINT_ADDRESS:
         restaurant = informations['suitable_list'].iloc[0]
         print(f"The address of {restaurant[0]} is {restaurant[5]}.")
-        return 7
 
-    elif current_state == 10:
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.PRINT_PHONENUMBER:
         restaurant = informations['suitable_list'].iloc[0]
         print(f"The phone number of {restaurant[0]} is {restaurant[4]}.")
-        return 7
 
-    elif current_state == 11:
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.NO_OTHER_RESTAURANTS:
         print("Sorry but there is no other restaurant", end="")
         if informations['area'] != None:
             print(f" in the {informations['area']} of town", end="")
@@ -470,26 +537,32 @@ def transition(current_state):
             print(f" in the {informations['price']} price range", end="")
         if informations['food'] != None:
             print(f" serving {informations['food']} food", end="")
-        if informations['extra'] != None: # if there was a requirements but no restaurants met that requirement
-            for word in informations['extra'].split(): # check what requirement was asked an build the answer string
+
+        # if there was a requirements but no restaurants met that requirement
+        if informations['extra'] != None:
+            # check what requirement was asked an build the answer string
+            for word in informations['extra'].split():
                 if word == 'romantic' or word == 'touristic':
-                    print(f' that is also {word}', end = "")
+                    print(f' that is also {word}', end="")
                 if word == 'children':
-                    print(f' that is also for {word}', end = "")
+                    print(f' that is also for {word}', end="")
                 if word == 'assigned':
-                    print(f' that also allows for {word} seats', end = "")
+                    print(f' that also allows for {word} seats', end="")
             informations['extra'] = None
         print(".")
-        return 7
 
-    elif current_state == 12:
+        return State.AWAIT_COMMAND
+
+    elif current_state == State.BYE:
         print("bye")
-        return -1
+        return State.KILL
+
     return current_state
 
 
+# main loop
 while True:
     new_state = transition(prev_state)
-    if new_state == -1:
+    if new_state == State.KILL:
         break
     prev_state = new_state
