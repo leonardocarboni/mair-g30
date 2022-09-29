@@ -57,6 +57,8 @@ chosen_model = 1 # logistic regression default
 
 auto_correction = True # use levenshtein edit distance or not
 
+caps_lock = False
+
 food_types = ['british', 'modern european', 'italian', 'romanian', 'seafood',
               'chinese', 'steakhouse', 'asian oriental', 'french', 'portuguese', 'indian',
               'spanish', 'european', 'vietnamese', 'korean', 'thai', 'moroccan', 'swiss',
@@ -83,6 +85,13 @@ rules = {
     "assigned seats": (["busy"], ["not busy"]),
     "touristic": (["cheap", "good food"], ["romanian"]),
 }
+
+
+def caps_check_print(text, end="\n"):
+    if caps_lock:
+        print(text.upper(), end=end)
+    else:
+        print(text)
 
 # logistic regression
 ## LOOK UP PICKLE FOR PRE-TRAINING ##
@@ -186,7 +195,7 @@ def change_to_lev(user_word):
 
 
 def print_welcome():
-    print("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?")
+    caps_check_print("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?")
 
 
 def extract_class(user_input):
@@ -335,7 +344,7 @@ def transition(current_state):
         return current_state
 
     elif current_state == State.ASK_AREA:
-        print("What area would you like to eat in?")
+        caps_check_print("What area would you like to eat in?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
@@ -368,7 +377,7 @@ def transition(current_state):
         return current_state
 
     elif current_state == State.ASK_FOOD:
-        print("What type of food would you like to eat?")
+        caps_check_print("What type of food would you like to eat?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
@@ -398,7 +407,7 @@ def transition(current_state):
         return current_state
 
     elif current_state == State.ASK_PRICE:
-        print("What price range do you prefer?")
+        caps_check_print("What price range do you prefer?")
         user_input = input().lower()
         ui_class = extract_class(user_input)
 
@@ -424,7 +433,7 @@ def transition(current_state):
 
         return current_state
     elif current_state == State.ASK_REQUIREMENTS:
-        print("Do you have additional requirements?")
+        caps_check_print("Do you have additional requirements?")
         return State.AWAIT_COMMAND
 
     elif current_state == State.RESTAURANT_FOUND:
@@ -434,15 +443,15 @@ def transition(current_state):
             return State.RESTAURANT_NOT_FOUND
 
         restaurant = informations['suitable_list'].iloc[0]
-        print(f"{restaurant[0]} is a nice place", end="")
+        caps_check_print(f"{restaurant[0]} is a nice place", end="")
 
         if informations['area'] != None:
-            print(f" in the {restaurant[2]} of town", end="")
+            caps_check_print(f" in the {restaurant[2]} of town", end="")
         if informations['price'] != None:
-            print(f" in the {restaurant[1]} price range", end="")
+            caps_check_print(f" in the {restaurant[1]} price range", end="")
         if informations['food'] != None:
-            print(f" serving {restaurant[3]} food", end="")
-        print(".")
+            caps_check_print(f" serving {restaurant[3]} food", end="")
+        caps_check_print(".")
 
         if req_string != None:
             print(req_string)
@@ -450,13 +459,13 @@ def transition(current_state):
         return State.AWAIT_COMMAND
 
     elif current_state == State.RESTAURANT_NOT_FOUND:
-        print("I'm sorry but there is no restaurant", end="")
+        caps_check_print("I'm sorry but there is no restaurant", end="")
         if informations['area'] != None:
-            print(f" in the {informations['area']} of town", end="")
+            caps_check_print(f" in the {informations['area']} of town", end="")
         if informations['price'] != None:
-            print(f" in the {informations['price']} price range", end="")
+            caps_check_print(f" in the {informations['price']} price range", end="")
         if informations['food'] != None:
-            print(f" serving {informations['food']} food", end="")
+            caps_check_print(f" serving {informations['food']} food", end="")
 
         # if there was a requirements but no restaurants met that requirement
         if informations['extra'] != None:
@@ -470,7 +479,7 @@ def transition(current_state):
                     print(f' that also allows for {word} seats', end="")
             # if there is no restaurant given the requirements, reset string for inference in case of future suggestions
             informations['extra'] = None
-        print(".")
+        caps_check_print(".")
 
         return State.AWAIT_COMMAND
 
@@ -547,30 +556,30 @@ def transition(current_state):
 
     elif current_state == State.PRINT_POSTCODE:
         restaurant = informations['suitable_list'].iloc[0]
-        print(f"The post code of {restaurant[0]} is {restaurant[6]}.")
+        caps_check_print(f"The post code of {restaurant[0]} is {restaurant[6]}.")
 
         return State.AWAIT_COMMAND
 
     elif current_state == State.PRINT_ADDRESS:
         restaurant = informations['suitable_list'].iloc[0]
-        print(f"The address of {restaurant[0]} is {restaurant[5]}.")
+        caps_check_print(f"The address of {restaurant[0]} is {restaurant[5]}.")
 
         return State.AWAIT_COMMAND
 
     elif current_state == State.PRINT_PHONENUMBER:
         restaurant = informations['suitable_list'].iloc[0]
-        print(f"The phone number of {restaurant[0]} is {restaurant[4]}.")
+        caps_check_print(f"The phone number of {restaurant[0]} is {restaurant[4]}.")
 
         return State.AWAIT_COMMAND
 
     elif current_state == State.NO_OTHER_RESTAURANTS:
-        print("Sorry but there is no other restaurant", end="")
+        caps_check_print("Sorry but there is no other restaurant", end="")
         if informations['area'] != None:
-            print(f" in the {informations['area']} of town", end="")
+            caps_check_print(f" in the {informations['area']} of town", end="")
         if informations['price'] != None:
-            print(f" in the {informations['price']} price range", end="")
+            caps_check_print(f" in the {informations['price']} price range", end="")
         if informations['food'] != None:
-            print(f" serving {informations['food']} food", end="")
+            caps_check_print(f" serving {informations['food']} food", end="")
 
         # if there was a requirements but no restaurants met that requirement
         if informations['extra'] != None:
@@ -583,12 +592,12 @@ def transition(current_state):
                 if word == 'assigned':
                     print(f' that also allows for {word} seats', end="")
             informations['extra'] = None
-        print(".")
+        caps_check_print(".")
 
         return State.AWAIT_COMMAND
 
     elif current_state == State.BYE:
-        print("bye")
+        caps_check_print("bye")
         return State.KILL
 
     return current_state
@@ -596,9 +605,9 @@ def transition(current_state):
 
 
 # User Input
-print("\nChoose what you want to do:")
-print("1. Logistic Regression")
-print("2. Baseline 2")
+caps_check_print("\nChoose what you want to do:")
+caps_check_print("1. Logistic Regression")
+caps_check_print("2. Baseline 2")
 
 choice = input("Enter your choice: ")
 
@@ -619,6 +628,19 @@ if choice == "1":
 
 elif choice == "2":
     auto_correction = False # baseline 2
+    
+
+print("\nDo you want OUTPUT to be in ALL CAPS?")
+print("1. YES")
+print("2. no")
+
+choice = input("Enter your CHOICE: ")
+
+if choice == "1":
+    caps_lock = True # logistic regression
+
+elif choice == "2":
+    caps_lock = False # baseline 2
 # main loop
 
 if chosen_model == 1:
@@ -627,9 +649,9 @@ if chosen_model == 1:
 while True:
     new_state = transition(prev_state)
     if new_state == State.KILL:
-        print("Do you want to start a new conversation?")
-        print("1. Yes")
-        print("2. No")
+        caps_check_print("Do you want to start a new conversation?")
+        caps_check_print("1. Yes")
+        caps_check_print("2. No")
         choice = input("Enter your choice: ")
         if choice == "1":
             informations = {'area': None, 'food': None, 'price': None, 'extra': None, 'suitable_list': None}
