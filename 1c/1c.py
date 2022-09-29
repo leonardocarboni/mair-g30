@@ -627,5 +627,13 @@ if chosen_model == 1:
 while True:
     new_state = transition(prev_state)
     if new_state == State.KILL:
-        break
+        print("Do you want to start a new conversation?")
+        print("1. Yes")
+        print("2. No")
+        choice = input("Enter your choice: ")
+        if choice == "1":
+            informations = {'area': None, 'food': None, 'price': None, 'extra': None, 'suitable_list': None}
+            new_state = State.WELCOME
+        else:
+            break
     prev_state = new_state
