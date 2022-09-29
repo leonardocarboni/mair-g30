@@ -321,7 +321,7 @@ def transition(current_state):
             lookup_restaurants()
 
             if len(informations['suitable_list']) == 0:  # no restaurant found
-                return State.NO_RESTAURANT_FOUND
+                return State.RESTAURANT_NOT_FOUND
             if len(informations['suitable_list']) == 1:  # only one restaurant found
                 return State.RESTAURANT_FOUND
 
