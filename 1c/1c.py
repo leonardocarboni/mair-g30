@@ -190,12 +190,6 @@ def change_to_lev(user_word):
                 new_word = area
                 min_dist = lev_dist(user_word, area)
         if new_word is not None:
-            if new_word != user_word:
-                print(f"Did you mean {new_word}?")
-                user_answer = input().lower()
-                ui_answer = extract_class(user_answer)
-                if ui_answer == 'negate': 
-                    return user_word
             return new_word
     return user_word
 
@@ -241,7 +235,6 @@ def extract_params(ui_split):
         prev_word = None
         if auto_correction:
             word = change_to_lev(word)
-            print(i)
             if i != 0:
                 prev_word = change_to_lev(ui_split[i-1])
         elif i != 0:
@@ -249,7 +242,7 @@ def extract_params(ui_split):
         # type of food
         if word in food_types:
             informations['food'] = word
-        elif word == 'food' and prev_word not in price_ranges:
+        elif word == 'food' and prev_word is not None and prev_word not in price_ranges:
             informations['food'] = prev_word
         elif word == 'asian':
             informations['food'] = 'asian oriental'
