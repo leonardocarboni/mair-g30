@@ -342,6 +342,10 @@ def transition(current_state):
         elif ui_class == 'repeat':
             return current_state
 
+        elif ui_class == 'restart':
+            for info in informations:
+                informations[info] = None
+            return State.WELCOME
         # if the class is not inform, loop back to the beginning
         return current_state
 
@@ -375,7 +379,10 @@ def transition(current_state):
             return State.BYE
         elif ui_class == 'repeat':
             return current_state
-
+        elif ui_class == 'restart':
+            for info in informations:
+                informations[info] = None
+            return State.WELCOME
         return current_state
 
     elif current_state == State.ASK_FOOD:
@@ -405,7 +412,10 @@ def transition(current_state):
             return State.BYE
         elif ui_class == 'repeat':
             return current_state
-
+        elif ui_class == 'restart':
+            for info in informations:
+                informations[info] = None
+            return State.WELCOME
         return current_state
 
     elif current_state == State.ASK_PRICE:
@@ -432,7 +442,10 @@ def transition(current_state):
             return State.BYE
         elif ui_class == 'repeat':
             return current_state
-
+        elif ui_class == 'restart':
+            for info in informations:
+                informations[info] = None
+            return State.WELCOME
         return current_state
     elif current_state == State.ASK_REQUIREMENTS:
         caps_check_print("Do you have additional requirements?")
@@ -553,6 +566,11 @@ def transition(current_state):
 
         elif ui_class == 'bye' or ui_class == 'thankyou':
             return State.BYE
+
+        elif ui_class == 'restart':
+            for info in informations:
+                informations[info] = None
+            return State.WELCOME
 
         return State.AWAIT_COMMAND
 
