@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import classification_report
 from collections import defaultdict
 
 d = pd.read_csv('dialog_acts.dat', header=None)
@@ -62,6 +62,56 @@ classes = {
     'thankyou': ['thank', 'thanks', 'thankyou'],
 }
 
+# function to train a logistic classifier
+def train_logistic():
+    print('Training...')
+    vocab = defaultdict(lambda: len(vocab)) # defaultdict to have indexes for each word
+    for sentence in df['utterance_content'].array: # for each train sentence
+        for word in sentence.split(): # for each word
+            vocab[word] # build the vocab with progressive indexes
+            
+    vocab['NEW_WORD'] # special entry for unseen words
+    train_data = np.zeros((len(X_train), len(vocab))) # bag of word train
+    for i, sentence in enumerate(X_train.array):
+        for word in sentence.split():
+            if word in vocab:
+                train_data[i][vocab[word]] += 1 # count words occurances 
+            else: # in train this should not occur
+                train_data[i][vocab['NEW_WORD']] += 1 # count unseen words
+            
+    LE = LabelEncoder() # encode y labels
+    Y_train_reshaped = LE.fit_transform(Y_train)
+    Y_test_reshaped = LE.fit_transform(Y_test)
+            
+            # logistic regressor
+    LR = LogisticRegression(random_state=0, max_iter = 500).fit(train_data, Y_train_reshaped)
+    return LR, LE, vocab
+
+# function to train a decision tree
+def train_tree():
+    print('Training...')
+    # much of the same as the previous model
+    vocab = defaultdict(lambda: len(vocab))
+    for sentence in df['utterance_content'].array:
+        for word in sentence.split():
+            vocab[word]
+        
+    vocab['NEW_WORD']
+    train_data = np.zeros((len(X_train), len(vocab)))
+    for i, sentence in enumerate(X_train.array):
+        for word in sentence.split():
+            if word in vocab:
+                train_data[i][vocab[word]] += 1
+            else:
+                train_data[i][vocab['NEW_WORD']] += 1
+        
+    LE = LabelEncoder() # encode y labels
+    Y_train_reshaped = LE.fit_transform(Y_train)
+    Y_test_reshaped = LE.fit_transform(Y_test)
+        
+    # decision tree classifier
+    clf = DecisionTreeClassifier(random_state=0).fit(train_data, Y_train_reshaped)
+    return clf, LE, vocab
 
 # Main Loop
 while True:
@@ -70,9 +120,9 @@ while True:
     print("\nChoose what you want to do:")
     print("1. Baseline 1")
     print("2. Baseline 2")
-    print("3. Test")
-    print("4. Logistic Regression")
-    print("5. Decision Tree Classifier")
+    print("3. Logistic Regression")
+    print("4. Decision Tree Classifier")
+    print("5. Evaluations")
     print("\n0. Exit")
 
     choice = input("Enter your choice: ")
@@ -84,10 +134,9 @@ while True:
         always assigns the majority class of in the data.
         """
         print("\nBaseline 1 - Write a sentence or a word")
-
         # Reading input and converting it in lower case
         prompt = input().lower()
-        print(majority)
+        print(f'Predicted class: {majority}')
 
     elif choice == "2":
         """
@@ -110,78 +159,16 @@ while True:
                     break
         if found == 0:  # if we didn't find a match, fall back to majority
             print(majority)
-
-    elif choice == "3": # remember to print a whole report of evaluation metrics using the function provided in the feedback
-        """
-        Testing baseline 2.
-        """
-        count = 0  # correctly predicted
-        incorrect = 0  # incorrectly predicted
-        for i, x in enumerate(X_test):  # for each test sentence
-            found = 0  # did we find the word among our keywords?
-            for word in x.split():  # split sentence in words
-                if found == 1:  # as soon as we found a match for one of our keyboard, go to next sentence
-                    break
-                for key, value in classes.items():
-                    if word in value:  # if the keyword is in the sentence
-                        found = 1  # flag on
-                        if key == Y_test.iloc[i]:  # if the prediction is correct
-                            count += 1
-                            break
-                        else:  # if the prediction is incorrect
-                            #print("prediction: ", key, "; sentence: ", x, 'incorrect', "; actual class: ", Y_test.iloc[i])
-                            incorrect += 1
-                            break
-            if found == 0:  # if after going through the whole dictionary we didn't get a match with one of our keywords
-                # fallback, if it was the majority class
-                if majority == Y_test.iloc[i]:
-                    count += 1
-                else:  # if it wasn't
-                    #print('fallback failed', x, Y_test.iloc[i])
-                    incorrect += 1
-        # sanity check for prediction size and test size
-        print("Sanity Check", len(X_test), count + incorrect)
-        print(count/len(X_test))  # accuracy
         
-    elif choice == "4":
+    elif choice == "3":
         """
         Machine Learning 1:
         A machine learning system based on Logistic Regression.
         """
         print("\nML 1 - Logistic Regression")
         
-        # create the vocab
-        vocab = defaultdict(lambda: len(vocab)) # defaultdict to have indexes for each word
-        for sentence in df['utterance_content'].array: # for each train sentence
-            for word in sentence.split(): # for each word
-                vocab[word] # build the vocab with progressive indexes
-        
-        vocab['NEW_WORD'] # special entry for unseen words
-        train_data = np.zeros((len(X_train), len(vocab))) # bag of word train
-        for i, sentence in enumerate(X_train.array):
-            for word in sentence.split():
-                if word in vocab:
-                    train_data[i][vocab[word]] += 1 # count words occurances 
-                else: # in train this should not occur
-                    train_data[i][vocab['NEW_WORD']] += 1 # count unseen words
-        
-        LE = LabelEncoder() # encode y labels
-        Y_train_reshaped = LE.fit_transform(Y_train)
-        Y_test_reshaped = LE.fit_transform(Y_test)
-        
-        # logistic regressor
-        LR = LogisticRegression(random_state=0, max_iter = 500).fit(train_data, Y_train_reshaped)
-        
-        # same as before for test sentences
-        test_data = np.zeros((len(X_test), len(vocab)))
-        for i, sentence in enumerate(X_test.array):
-            for word in sentence.split():
-                if word in vocab:
-                    test_data[i][vocab[word]] += 1
-                else:
-                    test_data[i][vocab['NEW_WORD']] += 1
-        LR.predict(test_data)
-        print("R^2 is: ", round(LR.score(test_data, Y_test_reshaped), 4)) # R^2 score
+        # create the model, the label encoder and vocab
+        LR, LE, vocab = train_logistic()
         
         print("Now you can write a sentence or a word to test the model.")
 
@@ -199,44 +186,14 @@ while True:
         print(LE.inverse_transform(LR.predict(user_data.reshape(1,-1)))) # predict class and print
         
         
-    elif choice == "5":
+    elif choice == "4":
         """
         Machine Learning 2:
         A machine learning system based on a decision tree classifier.
         """
         print("\nML 2 - Decision Tree")
         
-        # much of the same as the previous model
-        vocab = defaultdict(lambda: len(vocab))
-        for sentence in X_train.array:
-            for word in sentence.split():
-                vocab[word]
-        
-        vocab['NEW_WORD']
-        train_data = np.zeros((len(X_train), len(vocab)))
-        for i, sentence in enumerate(X_train.array):
-            for word in sentence.split():
-                if word in vocab:
-                    train_data[i][vocab[word]] += 1
-                else:
-                    train_data[i][vocab['NEW_WORD']] += 1
-        
-        LE = LabelEncoder() # encode y labels
-        Y_train_reshaped = LE.fit_transform(Y_train)
-        Y_test_reshaped = LE.fit_transform(Y_test)
-        
-        # decision tree classifier
-        clf = DecisionTreeClassifier(random_state=0).fit(train_data, Y_train_reshaped)
-                
-        test_data = np.zeros((len(X_test), len(vocab)))
-        for i, sentence in enumerate(X_test.array):
-            for word in sentence.split():
-                if word in vocab:
-                    test_data[i][vocab[word]] += 1
-                else:
-                    test_data[i][vocab['NEW_WORD']] += 1
-        clf.predict(test_data)
-        print("R^2 is: ", round(clf.score(test_data, Y_test_reshaped), 4)) # R^2 score
+        clf, LE, vocab = train_tree()
         
         print("Now you can write a sentence or a word to test the model.")
 
@@ -252,6 +209,83 @@ while True:
                 user_data[vocab['NEW_WORD']] += 1
         print(LE.inverse_transform(clf.predict(user_data.reshape(1,-1))))
                 
+    elif choice == "5": 
+        """
+        Testing baseline 2.
+        """
+        print("\nChoose what you want to evaluate:")
+        print("1. Baseline 1")
+        print("2. Baseline 2")
+        print("3. Logistic Regression")
+        print("4. Decision Tree Classifier")
+
+        eval_choice = input("Enter your choice: ")
+        if eval_choice == '1':
+
+            # evaluating baseline 1
+            evaluation = classification_report(Y_test, [majority]*len(Y_test), zero_division = 0, output_dict = True)
+            print()
+            print('Baseline evaluation:')
+            print(f'Overall Accuracy: { evaluation["accuracy"] }')
+            print(evaluation['macro avg'])
+
+        elif eval_choice == '2':
+            # evaluating baseline 2
+            test_preds = []
+            for i, x in enumerate(X_test):  # for each test sentence
+                found = 0  # did we find the word among our keywords?
+                for word in x.split():  # split sentence in words
+                    if found == 1:  # as soon as we found a match for one of our keyboard, go to next sentence
+                        break
+                    for key, value in classes.items():
+                        if word in value:  # if the keyword is in the sentence
+                            found = 1  # flag on
+                            test_preds.append(key)
+                            break
+                if found == 0:  # if after going through the whole dictionary we didn't get a match with one of our keywords
+                    # fallback, if it was the majority class
+                    test_preds.append(majority)
+            # sanity check for prediction size and test size
+            print("Sanity Check", len(X_test), len(test_preds))
+            evaluation = classification_report(Y_test, test_preds, zero_division = 0, output_dict = True)
+            print()
+            print('Baseline evaluation:')
+            print(f'Overall Accuracy: { evaluation["accuracy"] }')
+            print(evaluation['macro avg'])
+
+        elif eval_choice == '3':
+            # building and evaluating Logistic Regressor
+            LR, LE, vocab = train_logistic()
+            test_data = np.zeros((len(X_test), len(vocab)))
+            for i, sentence in enumerate(X_test.array):
+                for word in sentence.split():
+                    if word in vocab:
+                        test_data[i][vocab[word]] += 1
+                    else:
+                        test_data[i][vocab['NEW_WORD']] += 1
+            preds = LE.inverse_transform(LR.predict(test_data))
+            evaluation = classification_report(Y_test, preds, zero_division = 0, output_dict = True)
+            print()
+            print('Decision Tree evaluation:')
+            print(f'Overall Accuracy: { evaluation["accuracy"] }')
+            print(evaluation['macro avg'])
+
+        elif eval_choice == '4':
+            # building and evaluating Decision Tree
+            clf, LE, vocab = train_tree()
+            test_data = np.zeros((len(X_test), len(vocab)))
+            for i, sentence in enumerate(X_test.array):
+                for word in sentence.split():
+                    if word in vocab:
+                        test_data[i][vocab[word]] += 1
+                    else:
+                        test_data[i][vocab['NEW_WORD']] += 1
+            preds = LE.inverse_transform(clf.predict(test_data))
+            evaluation = classification_report(Y_test, preds, zero_division = 0, output_dict = True)
+            print()
+            print('Logistic Regression evaluation:')
+            print(f'Overall Accuracy: { evaluation["accuracy"] }')
+            print(evaluation['macro avg'])
         
     else:
         break
