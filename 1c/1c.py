@@ -469,7 +469,7 @@ def transition(current_state):
         caps_check_print(".")
 
         if req_string != None:
-            print(req_string)
+            caps_check_print(req_string)
 
         return State.AWAIT_COMMAND
 
@@ -487,11 +487,11 @@ def transition(current_state):
             # check what requirement was asked an build the answer string
             for word in informations['extra'].split():
                 if word == 'romantic' or word == 'touristic':
-                    print(f' that is also {word}', end="")
+                    caps_check_print(f' that is also {word}', end="")
                 if word == 'children':
-                    print(f' that is also for {word}', end="")
+                    caps_check_print(f' that is also for {word}', end="")
                 if word == 'assigned':
-                    print(f' that also allows for {word} seats', end="")
+                    caps_check_print(f' that also allows for {word} seats', end="")
             # if there is no restaurant given the requirements, reset string for inference in case of future suggestions
             informations['extra'] = None
         caps_check_print(".")
@@ -606,11 +606,11 @@ def transition(current_state):
             # check what requirement was asked an build the answer string
             for word in informations['extra'].split():
                 if word == 'romantic' or word == 'touristic':
-                    print(f' that is also {word}', end="")
+                    caps_check_print(f' that is also {word}', end="")
                 if word == 'children':
-                    print(f' that is also for {word}', end="")
+                    caps_check_print(f' that is also for {word}', end="")
                 if word == 'assigned':
-                    print(f' that also allows for {word} seats', end="")
+                    caps_check_print(f' that also allows for {word} seats', end="")
             informations['extra'] = None
         caps_check_print(".")
 
