@@ -91,7 +91,7 @@ def caps_check_print(text, end="\n"):
     if caps_lock:
         print(text.upper(), end=end)
     else:
-        print(text)
+        print(text, end=end)
 
 # logistic regression
 ## LOOK UP PICKLE FOR PRE-TRAINING ##
