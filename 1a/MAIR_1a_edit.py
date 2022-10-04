@@ -223,11 +223,10 @@ while True:
         if eval_choice == '1':
 
             # evaluating baseline 1
-            evaluation = classification_report(Y_test, [majority]*len(Y_test), zero_division = 0, output_dict = True)
+            evaluation = classification_report(Y_test, [majority]*len(Y_test), zero_division = 0)
             print()
-            print('Baseline evaluation:')
-            print(f'Overall Accuracy: { evaluation["accuracy"] }')
-            print(evaluation['macro avg'])
+            print('Baseline 1 evaluation:')
+            print(evaluation)
 
         elif eval_choice == '2':
             # evaluating baseline 2
@@ -247,11 +246,10 @@ while True:
                     test_preds.append(majority)
             # sanity check for prediction size and test size
             print("Sanity Check", len(X_test), len(test_preds))
-            evaluation = classification_report(Y_test, test_preds, zero_division = 0, output_dict = True)
+            evaluation = classification_report(Y_test, test_preds, zero_division = 0)
             print()
-            print('Baseline evaluation:')
-            print(f'Overall Accuracy: { evaluation["accuracy"] }')
-            print(evaluation['macro avg'])
+            print('Baseline 2 evaluation:')
+            print(evaluation)
 
         elif eval_choice == '3':
             # building and evaluating Logistic Regressor
@@ -264,11 +262,10 @@ while True:
                     else:
                         test_data[i][vocab['NEW_WORD']] += 1
             preds = LE.inverse_transform(LR.predict(test_data))
-            evaluation = classification_report(Y_test, preds, zero_division = 0, output_dict = True)
+            evaluation = classification_report(Y_test, preds, zero_division = 0)
             print()
-            print('Decision Tree evaluation:')
-            print(f'Overall Accuracy: { evaluation["accuracy"] }')
-            print(evaluation['macro avg'])
+            print('Logistic Regression evaluation:')
+            print(evaluation)
 
         elif eval_choice == '4':
             # building and evaluating Decision Tree
@@ -281,11 +278,10 @@ while True:
                     else:
                         test_data[i][vocab['NEW_WORD']] += 1
             preds = LE.inverse_transform(clf.predict(test_data))
-            evaluation = classification_report(Y_test, preds, zero_division = 0, output_dict = True)
+            evaluation = classification_report(Y_test, preds, zero_division = 0)
             print()
-            print('Logistic Regression evaluation:')
-            print(f'Overall Accuracy: { evaluation["accuracy"] }')
-            print(evaluation['macro avg'])
+            print('Decision Tree evaluation:')
+            print(evaluation)
         
     else:
         break
