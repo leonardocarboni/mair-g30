@@ -21,6 +21,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report
 from collections import defaultdict
+import nltk
+from nltk.corpus import stopwords
 
 d = pd.read_csv('dialog_acts.dat', header=None)
 df = pd.DataFrame(data=d)
@@ -62,22 +64,26 @@ classes = {
     'thankyou': ['thank', 'thanks', 'thankyou'],
 }
 
+sw = set(stopwords.words('english'))
+
 # function to train a logistic classifier
 def train_logistic():
     print('Training...')
     vocab = defaultdict(lambda: len(vocab)) # defaultdict to have indexes for each word
     for sentence in df['utterance_content'].array: # for each train sentence
         for word in sentence.split(): # for each word
-            vocab[word] # build the vocab with progressive indexes
+            if word not in sw:
+                vocab[word] # build the vocab with progressive indexes
             
     vocab['NEW_WORD'] # special entry for unseen words
     train_data = np.zeros((len(X_train), len(vocab))) # bag of word train
     for i, sentence in enumerate(X_train.array):
         for word in sentence.split():
-            if word in vocab:
-                train_data[i][vocab[word]] += 1 # count words occurances 
-            else: # in train this should not occur
-                train_data[i][vocab['NEW_WORD']] += 1 # count unseen words
+            if word not in sw:
+                if word in vocab:
+                    train_data[i][vocab[word]] += 1 # count words occurances 
+                else: # in train this should not occur
+                    train_data[i][vocab['NEW_WORD']] += 1 # count unseen words
             
     LE = LabelEncoder() # encode y labels
     Y_train_reshaped = LE.fit_transform(Y_train)
@@ -94,16 +100,18 @@ def train_tree():
     vocab = defaultdict(lambda: len(vocab))
     for sentence in df['utterance_content'].array:
         for word in sentence.split():
-            vocab[word]
+            if word not in sw:
+                vocab[word]
         
     vocab['NEW_WORD']
     train_data = np.zeros((len(X_train), len(vocab)))
     for i, sentence in enumerate(X_train.array):
         for word in sentence.split():
-            if word in vocab:
-                train_data[i][vocab[word]] += 1
-            else:
-                train_data[i][vocab['NEW_WORD']] += 1
+            if word not in sw:
+                if word in vocab:
+                    train_data[i][vocab[word]] += 1
+                else:
+                    train_data[i][vocab['NEW_WORD']] += 1
         
     LE = LabelEncoder() # encode y labels
     Y_train_reshaped = LE.fit_transform(Y_train)
@@ -179,10 +187,11 @@ while True:
         # creating bag of words for user input
         user_data = np.zeros(len(vocab))
         for word in prompt.split():
-            if word in vocab:
-                user_data[vocab[word]] += 1
-            else:
-                user_data[vocab['NEW_WORD']] += 1
+            if word not in sw:
+                if word in vocab:
+                    user_data[vocab[word]] += 1
+                else:
+                    user_data[vocab['NEW_WORD']] += 1
         print(LE.inverse_transform(LR.predict(user_data.reshape(1,-1)))) # predict class and print
         
         
@@ -203,10 +212,11 @@ while True:
         
         user_data = np.zeros(len(vocab))
         for word in prompt.split():
-            if word in vocab:
-                user_data[vocab[word]] += 1
-            else:
-                user_data[vocab['NEW_WORD']] += 1
+            if word not in sw:
+                if word in vocab:
+                    user_data[vocab[word]] += 1
+                else:
+                    user_data[vocab['NEW_WORD']] += 1
         print(LE.inverse_transform(clf.predict(user_data.reshape(1,-1))))
                 
     elif choice == "5": 
@@ -257,10 +267,11 @@ while True:
             test_data = np.zeros((len(X_test), len(vocab)))
             for i, sentence in enumerate(X_test.array):
                 for word in sentence.split():
-                    if word in vocab:
-                        test_data[i][vocab[word]] += 1
-                    else:
-                        test_data[i][vocab['NEW_WORD']] += 1
+                    if word not in sw:
+                        if word in vocab:
+                            test_data[i][vocab[word]] += 1
+                        else:
+                            test_data[i][vocab['NEW_WORD']] += 1
             preds = LE.inverse_transform(LR.predict(test_data))
             evaluation = classification_report(Y_test, preds, zero_division = 0)
             print()
@@ -273,10 +284,11 @@ while True:
             test_data = np.zeros((len(X_test), len(vocab)))
             for i, sentence in enumerate(X_test.array):
                 for word in sentence.split():
-                    if word in vocab:
-                        test_data[i][vocab[word]] += 1
-                    else:
-                        test_data[i][vocab['NEW_WORD']] += 1
+                    if word not in sw:
+                        if word in vocab:
+                            test_data[i][vocab[word]] += 1
+                        else:
+                            test_data[i][vocab['NEW_WORD']] += 1
             preds = LE.inverse_transform(clf.predict(test_data))
             evaluation = classification_report(Y_test, preds, zero_division = 0)
             print()
