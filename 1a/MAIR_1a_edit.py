@@ -222,9 +222,8 @@ while True:
         print(LE.inverse_transform(clf.predict(user_data.reshape(1,-1))))
                 
     elif choice == "5": 
-        """
-        Testing baseline 2.
-        """
+        # Evaluating models 
+        
         print("\nChoose what you want to evaluate:")
         print("1. Baseline 1")
         print("2. Baseline 2")

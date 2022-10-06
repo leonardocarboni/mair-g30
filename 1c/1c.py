@@ -94,8 +94,6 @@ def caps_check_print(text, end="\n"):
         print(text, end=end)
 
 # logistic regression
-## LOOK UP PICKLE FOR PRE-TRAINING ##
-
 
 def train_logistic():
     """
@@ -103,6 +101,7 @@ def train_logistic():
     regression model
     :return: A tuple containing the trained model, the vocabulary and the label encoder.
     """
+    print('Training...')
     d = pd.read_csv('dialog_acts.dat', header=None)
     df = pd.DataFrame(data=d)
     df.columns = ['dialog_act']
