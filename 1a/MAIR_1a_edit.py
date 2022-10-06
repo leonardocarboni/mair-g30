@@ -65,6 +65,8 @@ classes = {
 }
 
 sw = set(stopwords.words('english'))
+ 
+# to go back to stopwords inclusion, just delete not in sw check
 
 # function to train a logistic classifier
 def train_logistic():
@@ -89,7 +91,7 @@ def train_logistic():
     Y_train_reshaped = LE.fit_transform(Y_train)
     Y_test_reshaped = LE.fit_transform(Y_test)
             
-            # logistic regressor
+    # logistic regressor
     LR = LogisticRegression(random_state=0, max_iter = 500).fit(train_data, Y_train_reshaped)
     return LR, LE, vocab
 
