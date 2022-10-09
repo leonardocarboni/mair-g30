@@ -10,6 +10,7 @@ import pandas as pd
 from enum import Enum
 import utils
 
+# States encoding
 class State(Enum):
     WELCOME = 1
     ASK_AREA = 2
@@ -26,6 +27,7 @@ class State(Enum):
     BYE = 13
     KILL = -1
 
+# Set initial state
 prev_state = State.WELCOME
 
 
@@ -33,7 +35,7 @@ chosen_model = 1 # Decision Tree default
 
 auto_correction = True # use levenshtein edit distance or not
 
-caps_lock = False
+caps_lock = False # Default: not CAPS
 
 food_types = ['british', 'modern european', 'italian', 'romanian', 'seafood',
               'chinese', 'steakhouse', 'asian oriental', 'french', 'portuguese', 'indian',
@@ -74,6 +76,7 @@ def change_to_lev(user_word):
         min_dist = inf
         new_word = None
         # check the food types, price ranges and areas for information extraction purposes
+        # only corrects distances lower than 2
         for food_type in food_types:
             if min_dist > utils.lev_dist(user_word, food_type) and utils.lev_dist(user_word, food_type) <= 1:
                 new_word = food_type

@@ -8,11 +8,9 @@ The user will be able to specify:
 
 - Whether to use a Decision tree classifier or the second baseline
 
-- Wheter to enable auto correction vie leveinstein or not
+- Whether to enable auto correction vie leveinshtein or not (only words that are longer than 3 and have distance <=1 will be corrected)
 
-- Wheter the output should be in all caps or not
-
-- Finish this part with the new menu and stuff !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+- Whether the output should be in all caps or not
 
 # How to Use:
 
@@ -41,7 +39,7 @@ If just one restaurant is found, the system will print the name right away.
     U: chinese north
     S: the hotpot is a nice place in the north of town serving chinese food.
 
-If more than one restaurant is found the system will ask for additional requirements and choose the restaurant that suits the request the best.
+If more than one restaurant is found the system will ask for additional requirements and choose the restaurant that suits the request the best. If more than one requirement is given, only the lst one will be considered.
 
     S: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
     U: I want to eat chinese food
