@@ -13,9 +13,8 @@ Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 
 
 # Creating the dataframe
-import pandas as pd
 import numpy as np
-import utils #import majority, classes, train_logistic, train_tree, df, sw, X_test, X_train, Y_test, Y_train
+import utils
 
 from sklearn.metrics import classification_report
 

@@ -43,7 +43,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(df['utterance_content'],
                                                     test_size=0.15,
                                                     random_state=42)
 
-# getting the stopword list from nltk
+# stopword list taken from nltk
 sw = ['d', 'but', 'myself', 'them', 'having', 'about', 'her', 'until', 'some', 'isn', 'himself', 'we', 'to', 'in', 'had', 'each', 'during', 'where', "she's", 't', 'so', 'as', 'yourself', "shan't", 'because', 'wouldn', 'themselves', 'than', 'theirs', "isn't", 'can', 'which', 'my', "you're", 'on', "didn't", 'your', 'very', "don't", 'after', 'll', 'further', "haven't", 'me', 'its', 'why', 'out', 'while', 'wasn', 'does', 'aren', 'other', 'own', 'mightn', 
 'yourselves', "hasn't", 'no', 'nor', 'do', 'through', 'itself', 'before', "shouldn't", 'for', 'don', 'more', 'o', "you've", 'were', 'an', "wouldn't", 
 'his', 'being', 'been', 'hasn', 'm', 've', 'or', 'our', 'into', 'doing', 'ourselves', 'against', 'yours', 'from', "mustn't", "wasn't", 'will', 'whom', 'haven', 'was', 'him', "won't", 'weren', 'of', 'hadn', 'again', 'has', 'he', "couldn't", 'herself', 'their', "weren't", 'a', 'who', 'didn', 'how', 'those', "should've", 'just', "doesn't", 're', 'am', 'hers', 'and', 'that', 'above', 'too', 'couldn', 'are', "hadn't", 'shouldn', 'mustn', 'over', "that'll", 'not', 'between', 'with', 'there', 'doesn', 'below', 'have', 'by', 'if', 'when', 'did', 'both', 'same', "it's", 'ours', 'at', 'most', 'all', 'you', 'won', 'the', 'these', 'shan', 'ma', 'once', 'ain', 'under', 'then', 'any', 'only', 'now', "you'll", 'this', "needn't", 'i', 'up', 'down', 'off', 
