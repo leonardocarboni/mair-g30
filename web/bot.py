@@ -1,4 +1,5 @@
 from cmath import inf
+import re
 import numpy as np
 import pandas as pd
 from enum import Enum
@@ -63,8 +64,8 @@ rules = {
 model, LE, vocab = None, None, None
 
 
-def initialize(autocorr, all_caps, model_choice):
-    global model, LE, vocab
+def initialize(model_choice, all_caps, autocorr):
+    global model, LE, vocab, chosen_model, caps_lock, auto_correction
     auto_correction = autocorr
     caps_lock = all_caps
     chosen_model = model_choice
@@ -104,7 +105,7 @@ def change_to_lev(user_word):
 def print_welcome():
     return("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?")
 
-    #utils.caps_check_print("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?", caps_lock)
+    # utils.caps_check_print("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?", caps_lock)
 
 
 def extract_class(user_input):
@@ -603,6 +604,9 @@ def get_restaurant_found():
     if informations['food'] != None:
         response += f" serving {restaurant[3]} food"
     response += "."
+    
+    if informations['extra'] != None:
+        response += " " + manage_requirements()
     return response
 
 
@@ -622,6 +626,28 @@ def get_ask_requirements():
     return "What other requirements do you have?"
 
 
+def get_no_other_restaurants():
+    response = "Sorry but there is no other restaurant"
+    if informations['area'] != None:
+        response += f" in the {informations['area']} of town"
+    if informations['price'] != None:
+        response += f" in the {informations['price']} price range"
+    if informations['food'] != None:
+        response += f" serving {informations['food']} food"
+
+    # if there was a requirements but no restaurants met that requirement
+    if informations['extra'] != None:
+        # check what requirement was asked an build the answer string
+        for word in informations['extra'].split():
+            if word == 'romantic' or word == 'touristic':
+                response += f' that is also {word}'
+            if word == 'children':
+                response += f' that is also for {word}'
+            if word == 'assigned':
+                response += f' that also allows for {word} seats'
+        informations['extra'] = None
+
+
 def get_bye():
     return "Goodbye!"
 
@@ -630,25 +656,37 @@ def get_response(user_message):
     global prev_state
 
     user_input = user_message.lower()
+    if user_input == "/state":
+        return "+ STATE: " + prev_state.name
     ui_class = extract_class(user_input)
 
-    response = ""
+    if ui_class == 'bye':
+        prev_state = State.BYE
+        return get_bye()
 
-    # if prev_state == State.NOT_STARTED:
-    #     prev_state = State.WELCOME
-    #     return get_welcome()
+    elif ui_class == 'repeat':
+        prev_state = State.REPEAT
+        return "TO BE DONE"
+
+    elif ui_class == 'restart':
+        for info in informations:
+            informations[info] = None
+        prev_state = State.WELCOME
+        return get_welcome()
 
     if prev_state == State.WELCOME:
+        if ui_class == 'hello':
+            return get_welcome()
         if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
 
             if len(informations['suitable_list']) == 0:
-                prev_state = State.RESTAURANT_NOT_FOUND
+                prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
             if len(informations['suitable_list']) == 1:
-                prev_state = State.RESTAURANT_FOUND
+                prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
 
             if informations['area'] == None:
@@ -661,23 +699,8 @@ def get_response(user_message):
                 prev_state = State.ASK_PRICE
                 return get_ask_price()
             else:
-                prev_state = State.ASK_REQUIREMENTS
+                prev_state = State.AWAIT_COMMAND
                 return get_ask_requirements()
-
-        elif ui_class == 'bye':
-            prev_state = State.BYE
-            return get_bye()
-
-        elif ui_class == 'repeat':
-            prev_state = State.REPEAT
-            return "TO BE DONE"
-
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            prev_state = State.WELCOME
-            return get_welcome()
-        # if the class is not inform, loop back to the beginning
         return "aaaaaaaaaaaaa"
 
     elif prev_state == State.ASK_AREA:
@@ -687,10 +710,10 @@ def get_response(user_message):
             lookup_restaurants()
 
             if len(informations['suitable_list']) == 0:
-                prev_state = State.RESTAURANT_NOT_FOUND
+                prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
             if len(informations['suitable_list']) == 1:
-                prev_state = State.RESTAURANT_FOUND
+                prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
 
             elif informations['food'] == None:
@@ -700,22 +723,112 @@ def get_response(user_message):
                 prev_state = State.ASK_PRICE
                 return get_ask_price()
             else:
-                prev_state = State.ASK_REQUIREMENTS
+                prev_state = State.AWAIT_COMMAND
+                return get_ask_requirements()
+        return "bbbbbbbbbbbbbb"
+
+    elif prev_state == State.ASK_FOOD:
+        if ui_class == 'inform' or ui_class == 'deny':
+            ui_split = user_input.split()
+            extract_params(ui_split)
+            lookup_restaurants()
+
+            if len(informations['suitable_list']) == 0:
+                prev_state = State.AWAIT_COMMAND
+                return get_no_restaurant_found()
+            if len(informations['suitable_list']) == 1:
+                prev_state = State.AWAIT_COMMAND
+                return get_restaurant_found()
+
+            if informations['price'] == None:
+                prev_state = State.ASK_PRICE
+                return get_ask_price()
+            else:
+                prev_state = State.AWAIT_COMMAND
+                return get_ask_requirements()
+        return "cccccccccccccc"
+
+    elif prev_state == State.ASK_PRICE:
+        if ui_class == 'inform' or ui_class == 'deny':
+            ui_split = user_input.split()
+            extract_params(ui_split)
+            lookup_restaurants()
+
+            if len(informations['suitable_list']) == 0:
+                prev_state = State.AWAIT_COMMAND
+                return get_no_restaurant_found()
+            if len(informations['suitable_list']) == 1:
+                prev_state = State.AWAIT_COMMAND
+                return get_restaurant_found()
+            else:
+                prev_state = State.AWAIT_COMMAND
                 return get_ask_requirements()
 
-        elif ui_class == 'bye':
-            prev_state = State.BYE
-            return get_bye()
+    elif prev_state == State.AWAIT_COMMAND:
+        if ui_class == 'inform':
+            ui_split = user_input.split()
+            extract_params(ui_split)
+            lookup_restaurants()
 
-        elif ui_class == 'repeat':
-            prev_state = State.REPEAT
-            return "TO BE DONE"
+            if len(informations['suitable_list']) == 0:
+                prev_state = State.AWAIT_COMMAND
+                return get_no_restaurant_found()
+            if len(informations['suitable_list']) == 1:
+                prev_state = State.AWAIT_COMMAND
+                return get_restaurant_found()
 
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            prev_state = State.WELCOME
-            return get_welcome()
-        # if the class is not inform, loop back to the beginning
-        return "bbbbbbbbbbbbbbb"
+            for word in ui_split:
+                if word in rules.keys():
+                    informations['extra'] = word
+
+            # if a requirement was given suggest the restaurant
+            if informations['extra'] != None:
+                prev_state = State.AWAIT_COMMAND
+                return get_restaurant_found()
+            # if a requirement wasn't given, user is trying to change the main 3 infos and we go back
+            # these 3 checks are probably useless #
+            elif informations['area'] == None:  # area not specified -> ask area
+                prev_state = State.ASK_AREA
+                return get_ask_area()
+            # # food type not specified -> ask food type
+            elif informations['food'] == None:
+                prev_state = State.ASK_FOOD
+                return get_ask_food()
+            # # price range not specified -> ask price range
+            elif informations['price'] == None:
+                prev_state = State.ASK_PRICE
+                return get_ask_price()
+            else:  # if we have all informations but a preference wasn't given, then we ask for them
+                return get_ask_requirements()
+
+        elif ui_class == 'request':
+            ui_split = user_input.split()
+
+            for word in ui_split:
+                if word == 'postcode' or word == 'post':
+                    return State.PRINT_POSTCODE
+                elif word == 'address':
+                    return State.PRINT_ADDRESS
+                elif word == 'phone' or word == 'phonenumber':
+                    return State.PRINT_PHONENUMBER
+
+        elif ui_class == 'reqalts':
+            # If there is another restaurant, recommend the different restaurant
+            if len(informations['suitable_list']) > 1:
+                informations['suitable_list'] = informations['suitable_list'][1:]
+                prev_state = State.AWAIT_COMMAND
+                return get_restaurant_found()
+            # If there is no other restaurant, tell the user
+            prev_state = State.NO_OTHER_RESTAURANTS
+            return get_no_other_restaurants()
+
+        # reqmore not implemented bc it doesn't make sense
+
+        elif ui_class == 'negate':
+            lookup_restaurants()
+
+            if len(informations['suitable_list']) == 0:  # no restaurant found
+                return State.RESTAURANT_NOT_FOUND
+            else:  # at least one restaurant found
+                return State.RESTAURANT_FOUND
     return "not implemented"

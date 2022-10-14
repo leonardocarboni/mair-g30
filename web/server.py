@@ -9,9 +9,6 @@ app.secret_key = secrets.token_hex()
 
 bootstrap = Bootstrap5(app)
 
-bot.initialize(1, 1, 1)
-
-
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
@@ -19,8 +16,10 @@ def index():
         session['name'] = request.form.get("name")
         session['email'] = request.form.get("email")
         session['useDT'] = request.form.get("useDT")
-        #bot.initialize(session['useDT'], session['useDT'], session['useDT'])
-        return render_template('main.html', title='Test')
+        session['useCL'] = request.form.get("useCL")
+        session['useAC'] = request.form.get("useAC")
+        bot.initialize(session['useDT'], session['useCL'], session['useAC'])
+        return render_template('main.html', title='Test2')
     elif session.get("name") != None:
         return render_template('main.html', title='Test')
     else:
