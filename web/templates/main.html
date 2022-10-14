@@ -8,6 +8,13 @@
     <ul class="m-b-0" id="msgList">
       <li class="clearfix">
         <div class="row">
+          <div class="col-1">
+            <img
+              src="{{ url_for('static', filename='imgs/bot.png')}}"
+              class="chatbot-icon"
+              alt="bot"
+            />
+          </div>
           <div class="col-4">
             <div class="message bot-message">
               Hello, welcome to the MAIR G30 restaurant system? You can ask for
@@ -16,7 +23,7 @@
               Assigned seats. How may I help you?
             </div>
           </div>
-          <div class="col-8"></div>
+          <div class="col-7"></div>
         </div>
       </li>
     </ul>
@@ -55,10 +62,16 @@
         const msgHTMLClient = `
             <li class="clearfix">
               <div class="row">
-                <div class="col-8"></div>
+                <div class="col-7"></div>
                 <div class="col-4">
                   <div class="message user-message float-right">${msg}</div>
                 </div>
+                <div class="col-1">
+                    <img
+                      src="{{ url_for('static', filename='imgs/user.png')}}"
+                      class="user-icon"
+                      alt="user"
+                    />
               </div>
             </li>`;
 
@@ -81,10 +94,17 @@
             const msgHTMLBot = `
               <li class="clearfix">
                 <div class="row">
+                  <div class="col-1">
+                      <img
+                        src="{{ url_for('static', filename='imgs/bot.png')}}"
+                        class="chatbot-icon"
+                        alt="bot"
+                      />
+                  </div>
                   <div class="col-4">
                     <div class="message bot-message">${data["message"]}</div>
                   </div>
-                  <div class="col-8"></div>
+                  <div class="col-7"></div>
                 </div>
               </li>`;
             msg_history.append(msgHTMLBot);

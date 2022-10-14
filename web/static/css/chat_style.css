@@ -95,6 +95,20 @@ body {
 .btn-circle {
   border-radius: 60px;
 }
+
+.chatbot-icon {
+  float: right;
+  border-radius: 100px;
+  height: 6vh;
+  width: 6vh;
+}
+
+.user-icon {
+  border-radius: 100px;
+  height: 6vh;
+  width: 6vh;
+}
+
 @media only screen and (max-width: 767px) {
   .chat {
     margin: 0;
