@@ -102,12 +102,6 @@ def change_to_lev(user_word):
     return user_word
 
 
-def print_welcome():
-    return("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?")
-
-    # utils.caps_check_print("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?", caps_lock)
-
-
 def extract_class(user_input):
     """
     It takes in a string, and returns the class that the model predicts
@@ -219,437 +213,98 @@ def lookup_restaurants():
     # print the restaurants that match the user's request on the specified parameters
     informations['suitable_list'] = restaurants[final_filter]
 
-# Transition function: takes the current state and returns the next depending on user input (classified inside the function)
-
-
-def transition(current_state):
-    if current_state == State.WELCOME:
-        print_welcome()
-        user_input = input().lower()
-        ui_class = extract_class(user_input)
-
-        if ui_class == 'inform' or ui_class == 'deny':
-            ui_split = user_input.split()
-            extract_params(ui_split)
-            lookup_restaurants()
-
-            if len(informations['suitable_list']) == 0:  # no restaurant found
-                return State.RESTAURANT_NOT_FOUND
-            if len(informations['suitable_list']) == 1:  # only one restaurant found
-                return State.RESTAURANT_FOUND
-
-            if informations['area'] == None:  # area not specified -> ask area
-                return State.ASK_AREA
-            # food type not specified -> ask food type
-            elif informations['food'] == None:
-                return State.ASK_FOOD
-            # price range not specified -> ask price range
-            elif informations['price'] == None:
-                return State.ASK_PRICE
-            else:  # all preferences are given and more than 1 restaurant found
-                return State.ASK_REQUIREMENTS
-
-        elif ui_class == 'bye':
-            return State.BYE
-
-        elif ui_class == 'repeat':
-            return current_state
-
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            return State.WELCOME
-        # if the class is not inform, loop back to the beginning
-        return current_state
-
-    elif current_state == State.ASK_AREA:
-        utils.caps_check_print(
-            "What area would you like to eat in?", caps_lock)
-        user_input = input().lower()
-        ui_class = extract_class(user_input)
-
-        if ui_class == 'inform' or ui_class == 'deny':
-            ui_split = user_input.split()
-            extract_params(ui_split)
-            lookup_restaurants()  # update the list of suitable restaurants
-
-            # only one restaurant found -> suggest restaurant
-            if len(informations['suitable_list']) == 1:
-                return State.RESTAURANT_FOUND
-            # no restaurants found -> inform user there are no restaurants
-            elif len(informations['suitable_list']) == 0:
-                return State.RESTAURANT_NOT_FOUND
-            # more than 1 restaurant found and food type not specified -> ask food type
-            elif informations['food'] == None:
-                return State.ASK_FOOD
-            # more than 1 restaurant found and price range not specified -> ask price range
-            elif informations['price'] == None:
-                return State.ASK_PRICE
-            # more than 1 restaurant found and all preferences are specified -> list restaurantsÌ
-            else:
-                return State.ASK_REQUIREMENTS
-
-        elif ui_class == 'bye':
-            return State.BYE
-        elif ui_class == 'repeat':
-            return current_state
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            return State.WELCOME
-        return current_state
-
-    elif current_state == State.ASK_FOOD:
-        utils.caps_check_print(
-            "What type of food would you like to eat?", caps_lock)
-        user_input = input().lower()
-        ui_class = extract_class(user_input)
-
-        if ui_class == 'inform' or ui_class == 'deny':
-            ui_split = user_input.split()
-            extract_params(ui_split)
-            lookup_restaurants()
-
-            # only one restaurant found -> suggest restaurant
-            if len(informations['suitable_list']) == 1:
-                return State.RESTAURANT_FOUND
-            # no restaurants found -> inform user there are no restaurants
-            elif len(informations['suitable_list']) == 0:
-                return State.RESTAURANT_NOT_FOUND
-            # more than 1 restaurant found and price range not specified -> ask price range
-            elif informations['price'] == None:
-                return State.ASK_PRICE
-            # more than 1 restaurant found and all preferences are specified -> list restaurants
-            else:
-                return State.ASK_REQUIREMENTS
-
-        elif ui_class == 'bye':
-            return State.BYE
-        elif ui_class == 'repeat':
-            return current_state
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            return State.WELCOME
-        return current_state
-
-    elif current_state == State.ASK_PRICE:
-        utils.caps_check_print("What price range do you prefer?", caps_lock)
-        user_input = input().lower()
-        ui_class = extract_class(user_input)
-
-        if ui_class == 'inform' or ui_class == 'deny':
-            ui_split = user_input.split()
-            extract_params(ui_split)
-            lookup_restaurants()
-
-            # only one restaurant found -> suggest restaurant
-            if len(informations['suitable_list']) == 1:
-                return State.RESTAURANT_FOUND
-            # no restaurants found -> inform user there are no restaurants
-            elif len(informations['suitable_list']) == 0:
-                return State.RESTAURANT_NOT_FOUND
-            # more than 1 restaurant found and all preferences are specified -> list restaurants
-            else:
-                return State.ASK_REQUIREMENTS
-
-        elif ui_class == 'bye':
-            return State.BYE
-        elif ui_class == 'repeat':
-            return current_state
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            return State.WELCOME
-        return current_state
-
-    elif current_state == State.ASK_REQUIREMENTS:
-        utils.caps_check_print(
-            "Do you have additional requirements?", caps_lock)
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.RESTAURANT_FOUND:
-        req_string = manage_requirements()
-
-        if len(informations['suitable_list']) == 0:
-            return State.RESTAURANT_NOT_FOUND
-
-        restaurant = informations['suitable_list'].iloc[0]
-        utils.caps_check_print(
-            f"{restaurant[0]} is a nice place", caps_lock, end="")
-
-        if informations['area'] != None:
-            utils.caps_check_print(
-                f" in the {restaurant[2]} of town", caps_lock, end="")
-        if informations['price'] != None:
-            utils.caps_check_print(
-                f" in the {restaurant[1]} price range", caps_lock, end="")
-        if informations['food'] != None:
-            utils.caps_check_print(
-                f" serving {restaurant[3]} food", caps_lock, end="")
-        utils.caps_check_print(".", caps_lock)
-
-        if req_string != None:
-            utils.caps_check_print(req_string, caps_lock)
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.RESTAURANT_NOT_FOUND:
-        utils.caps_check_print(
-            "I'm sorry but there is no restaurant", caps_lock, end="")
-        if informations['area'] != None:
-            utils.caps_check_print(
-                f" in the {informations['area']} of town", caps_lock, end="")
-        if informations['price'] != None:
-            utils.caps_check_print(
-                f" in the {informations['price']} price range", caps_lock, end="")
-        if informations['food'] != None:
-            utils.caps_check_print(
-                f" serving {informations['food']} food", caps_lock, end="")
-
-        # if there was a requirements but no restaurants met that requirement
-        if informations['extra'] != None:
-            # check what requirement was asked an build the answer string
-            for word in informations['extra'].split():
-                if word == 'romantic' or word == 'touristic':
-                    utils.caps_check_print(
-                        f' that is also {word}', caps_lock, end="")
-                if word == 'children':
-                    utils.caps_check_print(
-                        f' that is also for {word}', caps_lock, end="")
-                if word == 'assigned':
-                    utils.caps_check_print(
-                        f' that also allows for {word} seats', caps_lock, end="")
-            # if there is no restaurant given the requirements, reset string for inference in case of future suggestions
-            informations['extra'] = None
-        utils.caps_check_print(".", caps_lock)
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.AWAIT_COMMAND:
-        user_input = input().lower()
-        ui_class = extract_class(user_input)
-
-        if ui_class == 'inform':
-            ui_split = user_input.split()
-            extract_params(ui_split)
-            lookup_restaurants()
-
-            if len(informations['suitable_list']) == 0:  # no restaurant found
-                return State.RESTAURANT_NOT_FOUND
-            if len(informations['suitable_list']) == 1:  # only one restaurant found
-                return State.RESTAURANT_FOUND
-
-            for word in ui_split:
-                if word in rules.keys():
-                    informations['extra'] = word
-
-            # if a requirement was given suggest the restaurant
-            if informations['extra'] != None:
-                return State.RESTAURANT_FOUND
-            # if a requirement wasn't given, user is trying to change the main 3 infos and we go back
-            # these 3 checks are probably useless #
-            elif informations['area'] == None:  # area not specified -> ask area
-                return State.ASK_AREA
-            # # food type not specified -> ask food type
-            elif informations['food'] == None:
-                return State.ASK_FOOD
-            # # price range not specified -> ask price range
-            elif informations['price'] == None:
-                return State.ASK_PRICE
-            else:  # if we have all informations but a preference wasn't given, then we ask for them
-                return State.ASK_REQUIREMENTS
-
-        elif ui_class == 'request':
-            ui_split = user_input.split()
-
-            for word in ui_split:
-                if word == 'postcode' or word == 'post':
-                    return State.PRINT_POSTCODE
-                elif word == 'address':
-                    return State.PRINT_ADDRESS
-                elif word == 'phone' or word == 'phonenumber':
-                    return State.PRINT_PHONENUMBER
-
-        elif ui_class == 'reqalts':
-            # If there is another restaurant, recommend the different restaurant
-            if len(informations['suitable_list']) > 1:
-                informations['suitable_list'] = informations['suitable_list'][1:]
-                return State.RESTAURANT_FOUND
-            # If there is no other restaurant, tell the user
-            return State.NO_OTHER_RESTAURANTS
-
-        # reqmore not implemented bc it doesn't make sense
-
-        elif ui_class == 'negate':
-            lookup_restaurants()
-
-            if len(informations['suitable_list']) == 0:  # no restaurant found
-                return State.RESTAURANT_NOT_FOUND
-            else:  # at least one restaurant found
-                return State.RESTAURANT_FOUND
-
-        elif ui_class == 'repeat':
-            return prev_state
-
-        elif ui_class == 'bye' or ui_class == 'thankyou':
-            return State.BYE
-
-        elif ui_class == 'restart':
-            for info in informations:
-                informations[info] = None
-            return State.WELCOME
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.PRINT_POSTCODE:
-        restaurant = informations['suitable_list'].iloc[0]
-        utils.caps_check_print(
-            f"The post code of {restaurant[0]} is {restaurant[6]}.", caps_lock)
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.PRINT_ADDRESS:
-        restaurant = informations['suitable_list'].iloc[0]
-        utils.caps_check_print(
-            f"The address of {restaurant[0]} is {restaurant[5]}.", caps_lock)
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.PRINT_PHONENUMBER:
-        restaurant = informations['suitable_list'].iloc[0]
-        utils.caps_check_print(
-            f"The phone number of {restaurant[0]} is {restaurant[4]}.", caps_lock)
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.NO_OTHER_RESTAURANTS:
-        utils.caps_check_print(
-            "Sorry but there is no other restaurant", caps_lock, end="")
-        if informations['area'] != None:
-            utils.caps_check_print(
-                f" in the {informations['area']} of town", caps_lock, end="")
-        if informations['price'] != None:
-            utils.caps_check_print(
-                f" in the {informations['price']} price range", caps_lock, end="")
-        if informations['food'] != None:
-            utils.caps_check_print(
-                f" serving {informations['food']} food", caps_lock, end="")
-
-        # if there was a requirements but no restaurants met that requirement
-        if informations['extra'] != None:
-            # check what requirement was asked an build the answer string
-            for word in informations['extra'].split():
-                if word == 'romantic' or word == 'touristic':
-                    utils.caps_check_print(
-                        f' that is also {word}', caps_lock, end="")
-                if word == 'children':
-                    utils.caps_check_print(
-                        f' that is also for {word}', caps_lock, end="")
-                if word == 'assigned':
-                    utils.caps_check_print(
-                        f' that also allows for {word} seats', caps_lock, end="")
-            informations['extra'] = None
-        utils.caps_check_print(".", caps_lock)
-
-        return State.AWAIT_COMMAND
-
-    elif current_state == State.BYE:
-        utils.caps_check_print("bye", caps_lock)
-        return State.KILL
-
-    return current_state
-
-
-# Main loop
-# while True:
-#     new_state = transition(prev_state)
-#     if new_state == State.KILL:
-#         utils.caps_check_print(
-#             "Do you want to start a new conversation?", caps_lock)
-#         utils.caps_check_print("1. Yes", caps_lock)
-#         utils.caps_check_print("2. No", caps_lock)
-#         choice = input("Enter your choice: ")
-#         if choice == "1":
-#             informations = {'area': None, 'food': None,
-#                             'price': None, 'extra': None, 'suitable_list': None}
-#             new_state = State.WELCOME
-#         else:
-#             break
-#     prev_state = new_state
-
 
 def get_welcome():
-    return "Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?"
+    return utils.caps_check("Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?", caps_lock)
 
 
 def get_no_restaurant_found():
-    response = "Sorry but there is no other restaurant"
+    response = utils.caps_check(
+        "Sorry but there is no other restaurant", caps_lock)
     if informations['area'] != None:
-        response += f" in the {informations['area']} of town"
+        response += utils.caps_check(f" in the {informations['area']} of town", caps_lock)
     if informations['price'] != None:
-        response += f" in the {informations['price']} price range"
+        response += utils.caps_check(
+            f" in the {informations['price']} price range", caps_lock)
     if informations['food'] != None:
-        response += f" serving {informations['food']} food"
+        response += utils.caps_check(f" serving {informations['food']} food", caps_lock)
+    response += utils.caps_check(".", caps_lock)
     return response
 
 
 def get_restaurant_found():
     restaurant = informations['suitable_list'].iloc[0]
-    response = f"{restaurant[0]} is a nice place"
+    response = utils.caps_check(f"{restaurant[0]} is a nice place", caps_lock)
     if informations['area'] != None:
-        response += f" in the {restaurant[2]} of town"
+        response += utils.caps_check(f" in the {restaurant[2]} of town", caps_lock)
     if informations['price'] != None:
-        response += f" in the {restaurant[1]} price range"
+        response += utils.caps_check(f" in the {restaurant[1]} price range", caps_lock)
     if informations['food'] != None:
-        response += f" serving {restaurant[3]} food"
+        response += utils.caps_check(f" serving {restaurant[3]} food", caps_lock)
     response += "."
-    
+
     if informations['extra'] != None:
-        response += " " + manage_requirements()
+        response += utils.caps_check(" " + manage_requirements(), caps_lock)
     return response
 
 
 def get_ask_area():
-    return "What area of town do you want to eat in?"
+    return utils.caps_check("What area of town do you want to eat in?", caps_lock)
 
 
 def get_ask_price():
-    return "What price range do you want to eat in?"
+    return utils.caps_check("What price range do you want to eat in?", caps_lock)
 
 
 def get_ask_food():
-    return "What type of food would you like to eat?"
+    return utils.caps_check("What type of food would you like to eat?", caps_lock)
 
 
 def get_ask_requirements():
-    return "What other requirements do you have?"
+    return utils.caps_check("What other requirements do you have?", caps_lock)
 
 
 def get_no_other_restaurants():
     response = "Sorry but there is no other restaurant"
     if informations['area'] != None:
-        response += f" in the {informations['area']} of town"
+        response += utils.caps_check(f" in the {informations['area']} of town", caps_lock)
     if informations['price'] != None:
-        response += f" in the {informations['price']} price range"
+        response += utils.caps_check(
+            f" in the {informations['price']} price range", caps_lock)
     if informations['food'] != None:
-        response += f" serving {informations['food']} food"
+        response += utils.caps_check(f" serving {informations['food']} food", caps_lock)
 
     # if there was a requirements but no restaurants met that requirement
     if informations['extra'] != None:
         # check what requirement was asked an build the answer string
         for word in informations['extra'].split():
             if word == 'romantic' or word == 'touristic':
-                response += f' that is also {word}'
+                response += utils.caps_check(f' that is also {word}', caps_lock)
             if word == 'children':
-                response += f' that is also for {word}'
+                response += utils.caps_check(f' that is also for {word}', caps_lock)
             if word == 'assigned':
-                response += f' that also allows for {word} seats'
+                response += utils.caps_check(
+                    f' that also allows for {word} seats', caps_lock)
         informations['extra'] = None
 
 
+def get_postcode():
+    restaurant = informations['suitable_list'].iloc[0]
+    return utils.caps_check(f"The post code of {restaurant[0]} is {restaurant[6]}.", caps_lock)
+
+
+def get_address():
+    restaurant = informations['suitable_list'].iloc[0]
+    return utils.caps_check(f"The address of {restaurant[0]} is {restaurant[5]}.", caps_lock)
+
+
+def get_phonenumber():
+    restaurant = informations['suitable_list'].iloc[0]
+    return utils.caps_check(f"The phone number of {restaurant[0]} is {restaurant[4]}.", caps_lock)
+
+
 def get_bye():
-    return "Goodbye!"
+    return utils.caps_check("Goodbye!", caps_lock)
 
 
 def get_response(user_message):
@@ -664,15 +319,15 @@ def get_response(user_message):
         prev_state = State.BYE
         return get_bye()
 
-    elif ui_class == 'repeat':
-        prev_state = State.REPEAT
-        return "TO BE DONE"
+    # elif ui_class == 'repeat':
+    #     prev_state = State.REPEAT
+    #     return "TO BE DONE"
 
     elif ui_class == 'restart':
         for info in informations:
             informations[info] = None
         prev_state = State.WELCOME
-        return get_welcome()
+        return "RESTARTED: " + get_welcome()
 
     if prev_state == State.WELCOME:
         if ui_class == 'hello':
@@ -806,11 +461,11 @@ def get_response(user_message):
 
             for word in ui_split:
                 if word == 'postcode' or word == 'post':
-                    return State.PRINT_POSTCODE
+                    return get_postcode()
                 elif word == 'address':
-                    return State.PRINT_ADDRESS
+                    return get_address()
                 elif word == 'phone' or word == 'phonenumber':
-                    return State.PRINT_PHONENUMBER
+                    return get_phonenumber()
 
         elif ui_class == 'reqalts':
             # If there is another restaurant, recommend the different restaurant

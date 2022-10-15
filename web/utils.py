@@ -113,6 +113,12 @@ def caps_check_print(text, caps_lock, end="\n"):
         print(text.upper(), end=end)
     else:
         print(text, end=end)
+        
+def caps_check(text, caps_lock):
+    if caps_lock:
+        return text.upper()
+    else:
+        return text
 
 #Function that given two strings, returns their Levenshtein edit distance
 def lev_dist(a, b):
