@@ -13,8 +13,9 @@ Group G30 (Giacomo Bais, Leonardo Carboni, Merel de Goede, Merel van den Bos)
 
 
 # Creating the dataframe
+import pandas as pd
 import numpy as np
-import utils
+import utils #import majority, classes, train_logistic, train_tree, df, sw, X_test, X_train, Y_test, Y_train
 
 from sklearn.metrics import classification_report
 
@@ -28,7 +29,8 @@ while True:
     print("2. Baseline 2")
     print("3. Logistic Regression")
     print("4. Decision Tree Classifier")
-    print("5. Evaluations")
+    print("5. Multi-layer perceptron")
+    print("6. Evaluations")
     print("\n0. Exit")
 
     choice = input("Enter your choice: ")
@@ -116,8 +118,31 @@ while True:
                 else:
                     user_data[vocab['NEW_WORD']] += 1
         print(LE.inverse_transform(clf.predict(user_data.reshape(1,-1))))
-                
-    elif choice == "5": 
+    elif choice == "5":
+        """
+        Machine Learning 3:
+        A machine learning system based on a MLP classifier.
+        """
+        print("\nML 2 - MLP")
+        
+        clf, LE, vocab = utils.train_MLP(utils.df)
+        
+        while(True):
+            print("Now you can write a sentence or a word to test the model.")
+
+            # Reading input and converting it in lower case
+            prompt = input().lower()
+            print("The predicted class for the sentence is ")
+            
+            user_data = np.zeros(len(vocab))
+            for word in prompt.split():
+                if word in vocab:
+                    user_data[vocab[word]] += 1
+                else:
+                    user_data[vocab['NEW_WORD']] += 1
+            print(LE.inverse_transform(clf.predict(user_data.reshape(1,-1))))
+                    
+    elif choice == "6": 
         # Evaluating models
 
         print("\nChoose what you want to evaluate:")
@@ -125,6 +150,7 @@ while True:
         print("2. Baseline 2")
         print("3. Logistic Regression")
         print("4. Decision Tree Classifier")
+        print("5. Multi-layer perceptron")
 
         eval_choice = input("Enter your choice: ")
         if eval_choice == '1':
@@ -188,6 +214,20 @@ while True:
             evaluation = classification_report(utils.Y_test, preds, zero_division = 0)
             print()
             print('Decision Tree evaluation:')
+            print(evaluation)
+        elif eval_choice == '5':
+            clf, LE, vocab = utils.train_MLP(utils.df)
+            test_data = np.zeros((len(utils.X_test), len(vocab)))
+            for i, sentence in enumerate(utils.X_test.array):
+                for word in sentence.split():
+                    if word in vocab:
+                        test_data[i][vocab[word]] += 1
+                    else:
+                        test_data[i][vocab['NEW_WORD']] += 1
+            preds = LE.inverse_transform(clf.predict(test_data))
+            evaluation = classification_report(utils.Y_test, preds, zero_division = 0)
+            print()
+            print('MLP evaluation:')
             print(evaluation)
         
     else:
