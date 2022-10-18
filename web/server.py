@@ -22,6 +22,7 @@ def index():
         session['useAC'] = request.form.get("useAC") == "on"
         session['informations'] = {'food': None, 'area': None,
                                    'price': None, 'suitable_list': None, 'extra': None}
+        session.modified = True
         return render_template('main.html', title='RestaurantBot')
     elif session.get("id") != None:
         return render_template('main.html', title='RestaurantBot')

@@ -132,6 +132,7 @@ def extract_params(ui_split):
         # type of food
         if word in food_types:
             session['informations']['food'] = word
+            session.modified = True
             print(session['informations']['food'])
         elif word == 'food' and prev_word is not None and prev_word not in price_ranges:
             session['informations']['food'] = prev_word
@@ -156,6 +157,8 @@ def manage_requirements():
     It takes the extra information and filters the suitable list based on that information
     :return: a string that explains why the restaurant is suitable for the extra requirement.
     """
+    
+    #TODO: FIX
     if session['informations']['extra'] == 'romantic':
         session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
                                                                                             ['stay_length'] == 'long stay']
@@ -197,7 +200,7 @@ def lookup_restaurants():
                     for i in zip(food_filter, price_filter, area_filter)]
 
     # print the restaurants that match the user's request on the specified parameters
-    session['informations']['suitable_list'] = restaurants[final_filter]
+    session['informations']['suitable_list'] = restaurants[final_filter].to_dict()
 
 
 def get_welcome():
@@ -221,7 +224,7 @@ def get_no_restaurant_found():
 
 
 def get_restaurant_found():
-    restaurant = session['informations']['suitable_list'].iloc[0]
+    restaurant = session['informations']['suitable_list'][0]
     response = utils.caps_check(
         f"{restaurant[0]} is a nice place", session['useCL'])
     if session['informations']['area'] != None:
@@ -286,17 +289,17 @@ def get_no_other_restaurants():
 
 
 def get_postcode():
-    restaurant = session['informations']['suitable_list'].iloc[0]
+    restaurant = session['informations']['suitable_list'][0]
     return utils.caps_check(f"The post code of {restaurant[0]} is {restaurant[6]}.", session['useCL'])
 
 
 def get_address():
-    restaurant = session['informations']['suitable_list'].iloc[0]
+    restaurant = session['informations']['suitable_list'][0]
     return utils.caps_check(f"The address of {restaurant[0]} is {restaurant[5]}.", session['useCL'])
 
 
 def get_phonenumber():
-    restaurant = session['informations']['suitable_list'].iloc[0]
+    restaurant = session['informations']['suitable_list'][0]
     return utils.caps_check(f"The phone number of {restaurant[0]} is {restaurant[4]}.", session['useCL'])
 
 
@@ -307,8 +310,6 @@ def get_bye():
 def get_response(user_message):
     global prev_state
     
-    
-
     user_input = user_message.lower()
     if user_input == "/state":
         return "+ STATE: " + prev_state.name
@@ -319,10 +320,6 @@ def get_response(user_message):
     if ui_class == 'bye':
         prev_state = State.BYE
         return get_bye()
-
-    # elif ui_class == 'repeat':
-    #     prev_state = State.REPEAT
-    #     return "TO BE DONE"
 
     elif ui_class == 'restart':
         for info in session['informations']:
@@ -337,6 +334,7 @@ def get_response(user_message):
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
+            print(session['informations'])
 
             if len(session['informations']['suitable_list']) == 0:
                 prev_state = State.AWAIT_COMMAND
@@ -361,6 +359,7 @@ def get_response(user_message):
 
     elif prev_state == State.ASK_AREA:
         if ui_class == 'inform' or ui_class == 'deny':
+            print(session['informations'])
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
