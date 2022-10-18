@@ -133,23 +133,28 @@ def extract_params(ui_split):
         if word in food_types:
             session['informations']['food'] = word
             session.modified = True
-            print(session['informations']['food'])
         elif word == 'food' and prev_word is not None and prev_word not in price_ranges:
             session['informations']['food'] = prev_word
+            session.modified = True
         elif word == 'asian':
             session['informations']['food'] = 'asian oriental'
+            session.modified = True
 
         # price ranges
         if word in price_ranges:
             session['informations']['price'] = word
+            session.modified = True
         elif word == 'moderately':
             session['informations']['price'] = 'moderate'
+            session.modified = True
 
         # areas
         if word in areas:
             session['informations']['area'] = word
+            session.modified = True
         elif word == 'center':
             session['informations']['area'] = 'centre'
+            session.modified = True
 
 
 def manage_requirements():
@@ -157,23 +162,40 @@ def manage_requirements():
     It takes the extra information and filters the suitable list based on that information
     :return: a string that explains why the restaurant is suitable for the extra requirement.
     """
-    
+
     #TODO: FIX
     if session['informations']['extra'] == 'romantic':
-        session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
-                                                                                            ['stay_length'] == 'long stay']
+        temp = pd.DataFrame(session['informations']['suitable_list'])
+        temp = temp[temp['stay_length'] == 'long stay']
+        # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
+        # ['stay_length'] == 'long stay']
+        session['informations']['suitable_list'] = temp.to_dict()
+        session.modified = True
         return "The restaurant is romantic because it allows you to stay for a long time."
     if session['informations']['extra'] == 'children':
-        session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
-                                                                                            ['stay_length'] == 'short stay']
+        temp = pd.DataFrame(session['informations']['suitable_list'])
+        temp = temp[temp['stay_length'] == 'short stay']
+        
+        # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
+        #                                                                                     ['stay_length'] == 'short stay']
+        session['informations']['suitable_list'] = temp.to_dict()
+        session.modified = True
         return "The restaurant is for children because it allows you to stay for a short time."
     if session['informations']['extra'] == 'assigned':
-        session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
-                                                                                            ['crowdedness'] == 'busy']
+        temp = pd.DataFrame(session['informations']['suitable_list'])
+        temp = temp[temp['crowdedness'] == 'busy']
+        # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
+        #                                                                                     ['crowdedness'] == 'busy']
+        session['informations']['suitable_list'] = temp.to_dict()
+        session.modified = True
         return "The restaurant allows for assigned seats because it is usually busy."
     if session['informations']['extra'] == 'touristic':
-        session['informations']['suitable_list'] = session['informations']['suitable_list'][(session['informations']['suitable_list']['pricerange'] == 'cheap') & (
-            session['informations']['suitable_list']['food_quality'] == 'good food')]
+        temp = pd.DataFrame(session['informations']['suitable_list'])
+        temp = temp[(temp['pricerange'] == 'cheap') & (temp['food_quality'] == 'good food')] 
+        # session['informations']['suitable_list'] = session['informations']['suitable_list'][(session['informations']['suitable_list']['pricerange'] == 'cheap') & (
+        #     session['informations']['suitable_list']['food_quality'] == 'good food')]
+        session['informations']['suitable_list'] = temp.to_dict()
+        session.modified = True
         return "The restaurant is touristic because it is cheap and it serves good food."
 
 
@@ -224,18 +246,19 @@ def get_no_restaurant_found():
 
 
 def get_restaurant_found():
-    restaurant = session['informations']['suitable_list'][0]
+    restaurant = pd.DataFrame(session['informations']['suitable_list']).iloc[0]
+    print(restaurant)
     response = utils.caps_check(
-        f"{restaurant[0]} is a nice place", session['useCL'])
+        f"{restaurant['restaurantname']} is a nice place", session['useCL'])
     if session['informations']['area'] != None:
         response += utils.caps_check(
-            f" in the {restaurant[2]} of town", session['useCL'])
+            f" in the {restaurant['area']} of town", session['useCL'])
     if session['informations']['price'] != None:
         response += utils.caps_check(
-            f" in the {restaurant[1]} price range", session['useCL'])
+            f" in the {restaurant['pricerange']} price range", session['useCL'])
     if session['informations']['food'] != None:
         response += utils.caps_check(
-            f" serving {restaurant[3]} food", session['useCL'])
+            f" serving {restaurant['food']} food", session['useCL'])
     response += "."
 
     if session['informations']['extra'] != None:
@@ -286,45 +309,57 @@ def get_no_other_restaurants():
                 response += utils.caps_check(
                     f' that also allows for {word} seats', session['useCL'])
         session['informations']['extra'] = None
+        
+    return response
 
 
 def get_postcode():
-    restaurant = session['informations']['suitable_list'][0]
-    return utils.caps_check(f"The post code of {restaurant[0]} is {restaurant[6]}.", session['useCL'])
+    restaurant = pd.DataFrame(session['informations']['suitable_list']).iloc[0]
+    return utils.caps_check(f"The post code of {restaurant['restaurantname']} is {restaurant['postcode']}.", session['useCL'])
 
 
 def get_address():
-    restaurant = session['informations']['suitable_list'][0]
-    return utils.caps_check(f"The address of {restaurant[0]} is {restaurant[5]}.", session['useCL'])
+    restaurant = pd.DataFrame(session['informations']['suitable_list']).iloc[0]
+    return utils.caps_check(f"The address of {restaurant['restaurantname']} is {restaurant['addr']}.", session['useCL'])
 
 
 def get_phonenumber():
-    restaurant = session['informations']['suitable_list'][0]
-    return utils.caps_check(f"The phone number of {restaurant[0]} is {restaurant[4]}.", session['useCL'])
+    restaurant = pd.DataFrame(session['informations']['suitable_list']).iloc[0]
+    return utils.caps_check(f"The phone number of {restaurant['restaurantname']} is {restaurant['phone']}.", session['useCL'])
 
 
 def get_bye():
-    return utils.caps_check("Goodbye!", session['useCL'])
+    response = "Goodbye!"
+    if session['informations']['attempt'] >= 11:
+        response += " Please leave complete the survey on <a href='https://forms.office.com/Pages/DesignPageV2.aspx?subpage=design&FormId=oFgn10akD06gqkv5WkoQ5z6fwTBqk1NEjDs1bydB55RUNlpQVEc2RzRKRFZIM0lLMERMWTNIM0g0TS4u&Token=7c62bf5a858e4276aace5efa9ccda3ae'>this link</a>."
+    return utils.caps_check(response, session['useCL'])
 
 
 def get_response(user_message):
     global prev_state
-    
+
     user_input = user_message.lower()
     if user_input == "/state":
         return "+ STATE: " + prev_state.name
     elif user_input == "/debug":
         return f"+ DEBUG: {str(session['informations'])}, {str(session['useDT']), str(session['useCL']), str(session['useAC'])}"
+    elif user_input == "/df":
+        return str(pd.DataFrame(session['informations']['suitable_list']))
     ui_class = extract_class(user_input)
-    
+
     if ui_class == 'bye':
         prev_state = State.BYE
         return get_bye()
 
     elif ui_class == 'restart':
         for info in session['informations']:
-            session['informations'][info] = None
+            if info != 'attempt':
+                session['informations'][info] = None
+        session['informations']['attempt'] += 1
+        session.modified = True
         prev_state = State.WELCOME
+        if session['informations']['attempt'] >= 5:
+            return " Please leave complete the survey on <a href='https://forms.office.com/Pages/DesignPageV2.aspx?subpage=design&FormId=oFgn10akD06gqkv5WkoQ5z6fwTBqk1NEjDs1bydB55RUNlpQVEc2RzRKRFZIM0lLMERMWTNIM0g0TS4u&Token=7c62bf5a858e4276aace5efa9ccda3ae'>this link</a>."
         return "RESTARTED: " + get_welcome()
 
     if prev_state == State.WELCOME:
@@ -336,10 +371,10 @@ def get_response(user_message):
             lookup_restaurants()
             print(session['informations'])
 
-            if len(session['informations']['suitable_list']) == 0:
+            if len(session['informations']['suitable_list']['addr']) == 0:
                 prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
-            if len(session['informations']['suitable_list']) == 1:
+            if len(session['informations']['suitable_list']['addr']) == 1:
                 prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
 
@@ -364,10 +399,10 @@ def get_response(user_message):
             extract_params(ui_split)
             lookup_restaurants()
 
-            if len(session['informations']['suitable_list']) == 0:
+            if len(session['informations']['suitable_list']['addr']) == 0:
                 prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
-            if len(session['informations']['suitable_list']) == 1:
+            if len(session['informations']['suitable_list']['addr']) == 1:
                 prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
 
@@ -388,10 +423,10 @@ def get_response(user_message):
             extract_params(ui_split)
             lookup_restaurants()
 
-            if len(session['informations']['suitable_list']) == 0:
+            if len(session['informations']['suitable_list']['addr']) == 0:
                 prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
-            if len(session['informations']['suitable_list']) == 1:
+            if len(session['informations']['suitable_list']['addr']) == 1:
                 prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
 
@@ -409,10 +444,10 @@ def get_response(user_message):
             extract_params(ui_split)
             lookup_restaurants()
 
-            if len(session['informations']['suitable_list']) == 0:
+            if len(session['informations']['suitable_list']['addr']) == 0:
                 prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
-            if len(session['informations']['suitable_list']) == 1:
+            if len(session['informations']['suitable_list']['addr']) == 1:
                 prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
             else:
@@ -425,10 +460,10 @@ def get_response(user_message):
             extract_params(ui_split)
             lookup_restaurants()
 
-            if len(session['informations']['suitable_list']) == 0:
+            if len(session['informations']['suitable_list']['addr']) == 0:
                 prev_state = State.AWAIT_COMMAND
                 return get_no_restaurant_found()
-            if len(session['informations']['suitable_list']) == 1:
+            if len(session['informations']['suitable_list']['addr']) == 1:
                 prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
 
@@ -469,20 +504,20 @@ def get_response(user_message):
 
         elif ui_class == 'reqalts':
             # If there is another restaurant, recommend the different restaurant
-            if len(session['informations']['suitable_list']) > 1:
-                session['informations']['suitable_list'] = session['informations']['suitable_list'][1:]
+            if len(session['informations']['suitable_list']['addr']) > 1:
+                session['informations']['suitable_list'] = (pd.DataFrame(session['informations']['suitable_list'])[1:]).to_dict()
+                session.modified = True
                 prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
             # If there is no other restaurant, tell the user
-            prev_state = State.NO_OTHER_RESTAURANTS
+            prev_state = State.AWAIT_COMMAND
             return get_no_other_restaurants()
 
-        # reqmore not implemented bc it doesn't make sense
 
         elif ui_class == 'negate':
             lookup_restaurants()
 
-            if len(session['informations']['suitable_list']) == 0:  # no restaurant found
+            if len(session['informations']['suitable_list']['addr']) == 0:  # no restaurant found
                 return State.RESTAURANT_NOT_FOUND
             else:  # at least one restaurant found
                 return State.RESTAURANT_FOUND
