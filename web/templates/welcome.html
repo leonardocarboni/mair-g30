@@ -1,0 +1,63 @@
+{% extends "base.html" %} {% block body %}
+
+<div class="container mt-5 text-center">
+  <h1>Welcome to restaurant bot!</h1>
+
+  <p>
+    This bot has been created by the group G30 for the course "Methods in AI
+    Research", at Utrecht University.
+  </p>
+
+  <p>Insert your name and start using the bot! Thanks for your time</p>
+
+  <form action="{{ url_for('index') }}" method="post">
+    <div class="row align-items-center my-2">
+      <div class="col-4 text-end">
+        <label for="nameInput" class="form-label">Name</label>
+      </div>
+      <div class="col-4">
+        <input type="text" class="form-control" id="nameInput" name="name" />
+      </div>
+    </div>
+    <div class="row align-items-center my-2">
+      <div class="col-4 text-end">
+        <label for="emailInput" class="form-label">Email address</label>
+      </div>
+      <div class="col-4">
+        <input type="email" class="form-control" id="emailInput" name="email" />
+      </div>
+    </div>
+    <div class="row align-items-right my-2">
+      <div class="col-7 text-end">
+        <label for="useDTCheck">Use Decision Tree Classification</label>
+      </div>
+      <div class="col-1">
+        <input type="checkbox" id="useDTCheck" name="useDT" checked />
+      </div>
+    </div>
+    <div class="row align-items-right my-2">
+      <div class="col-7 text-end">
+        <label for="useCLCheck">Messages in all CAPS</label>
+      </div>
+      <div class="col-1">
+        <input type="checkbox" id="useCLCheck" name="useCL"  />
+      </div>
+    </div>
+    <div class="row align-items-right my-2">
+      <div class="col-7 text-end">
+        <label for="useACCheck">Enable Auto Correction</label>
+      </div>
+      <div class="col-1">
+        <input type="checkbox" id="useACCheck" name="useDC" checked />
+      </div>
+    </div>
+    <div class="row align-items-center my-2">
+      <div class="col-4"></div>
+      <div class="col-4 text-end">
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
