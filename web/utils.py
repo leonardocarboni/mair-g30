@@ -8,6 +8,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 from functools import lru_cache
+from flask import session
 
 classes = {
     'ack': ['kay', 'okay', "fine", 'great', 'good'],
@@ -50,6 +51,22 @@ sw = ['d', 'but', 'myself', 'them', 'having', 'about', 'her', 'until', 'some', '
 'his', 'being', 'been', 'hasn', 'm', 've', 'or', 'our', 'into', 'doing', 'ourselves', 'against', 'yours', 'from', "mustn't", "wasn't", 'will', 'whom', 'haven', 'was', 'him', "won't", 'weren', 'of', 'hadn', 'again', 'has', 'he', "couldn't", 'herself', 'their', "weren't", 'a', 'who', 'didn', 'how', 'those', "should've", 'just', "doesn't", 're', 'am', 'hers', 'and', 'that', 'above', 'too', 'couldn', 'are', "hadn't", 'shouldn', 'mustn', 'over', "that'll", 'not', 'between', 'with', 'there', 'doesn', 'below', 'have', 'by', 'if', 'when', 'did', 'both', 'same', "it's", 'ours', 'at', 'most', 'all', 'you', 'won', 'the', 'these', 'shan', 'ma', 'once', 'ain', 'under', 'then', 'any', 'only', 'now', "you'll", 'this', "needn't", 'i', 'up', 'down', 'off', 
 's', "aren't", 'she', 'needn', 'should', 'y', 'few', 'it', 'they', "mightn't", 'is', "you'd", 'what', 'here', 'such', 'be']
 
+# File functions
+
+def begin_file():
+    with open(f"chats/{session['id']}.txt",'w') as f:
+        f.write(f"[{session['id']}, {session['email']}, ML: {session['useML']}, CL: {session['useCL']}, AC: {session['useAC']}]\n")
+    f.close()
+    
+def save_msg_on_file(msg, bot):
+    with open(f"chats/{session['id']}.txt",'a') as f:
+        if bot:
+            f.write(f"BOT: {msg}\n")
+        else:
+            f.write(f'USER: {msg}\n')
+    f.close()
+
+
 # trains a neural network
 def train_MLP(data):
     print('Training...')
@@ -74,6 +91,7 @@ def train_MLP(data):
     # logistic regressor
     clf = MLPClassifier(random_state=1).fit(train_data, Y_train_reshaped)
     return clf, LE, vocab
+
 
 #Function that train a logistic regression model given data
 def train_logistic(data):

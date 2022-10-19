@@ -1,0 +1,11 @@
+[0b813a49b4b9097e4f, carboapple@gmail.com, ML: True, CL: False, AC: True]
+USER: chinese
+BOT: What area of town do you want to eat in?
+USER: south
+BOT: What price range do you want to eat in?
+USER: cheap
+BOT: What other requirements do you have?
+USER: romantic
+BOT: the missing sock is a nice place in the south of town in the cheap price range serving chinese food. The restaurant is romantic because it allows you to stay for a long time.
+USER: bye
+BOT: Goodbye!

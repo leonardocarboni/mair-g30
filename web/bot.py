@@ -28,9 +28,6 @@ class State(Enum):
     KILL = -1
 
 
-# Set initial state
-prev_state = State.WELCOME
-
 food_types = ['british', 'modern european', 'italian', 'romanian', 'seafood',
               'chinese', 'steakhouse', 'asian oriental', 'french', 'portuguese', 'indian',
               'spanish', 'european', 'vietnamese', 'korean', 'thai', 'moroccan', 'swiss',
@@ -94,10 +91,10 @@ def extract_class(user_input):
     :param user_input: The user's input
     :return: The class of the input
     """
-    if session['useDT']:  # MLP
+    if session['useML']:  # machine learning
         user_data = np.zeros(len(vocab))
         for word in user_input.split():
-            word = word.replace('?', '') # delete question marks from words
+            word = word.replace('?', '')  # delete question marks from words
             if word in rules.keys():
                 return 'inform'
             if session['useAC']:
@@ -110,7 +107,7 @@ def extract_class(user_input):
         return LE.inverse_transform(model.predict(user_data.reshape(1, -1)))
     else:  # baseline 2
         for word in user_input.split():  # split prompt into words
-            word = word.replace('?', '') # delete question marks from words
+            word = word.replace('?', '')  # delete question marks from words
             if session['useAC']:
                 word = change_to_lev(word)
             for key, value in utils.classes.items():  # look for the word in the dictionary
@@ -127,7 +124,7 @@ def extract_params(ui_split):
     :param ui_split: the user input split into a list of words
     """
     for i, word in enumerate(ui_split):
-        word = word.replace('?', '') # delete question marks from words
+        word = word.replace('?', '')  # delete question marks from words
         prev_word = None
         if session['useAC']:
             word = change_to_lev(word)
@@ -169,48 +166,40 @@ def manage_requirements():
     :return: a string that explains why the restaurant is suitable for the extra requirement.
     """
 
-    #TODO: FIX
     if session['informations']['extra'] == 'romantic':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['stay_length'] == 'long stay']
-        # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
-        # ['stay_length'] == 'long stay']
         session['informations']['suitable_list'] = temp.to_dict()
-        if len(temp) == 0:
-
-            return ''
         session.modified = True
+        if len(temp) == 0:
+            return ""
         return "The restaurant is romantic because it allows you to stay for a long time."
-    if session['informations']['extra'] == 'children':
+    elif session['informations']['extra'] == 'children':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['stay_length'] == 'short stay']
-        session['informations']['suitable_list'] = temp.to_dict()
+        
         if len(temp) == 0:
-            return ''
-        # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
-        #                                                                                     ['stay_length'] == 'short stay']
-        session.modified = True
+            return ""
         return "The restaurant is for children because it allows you to stay for a short time."
-    if session['informations']['extra'] == 'assigned':
+    elif session['informations']['extra'] == 'assigned':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['crowdedness'] == 'busy']
         session['informations']['suitable_list'] = temp.to_dict()
-        if len(temp) == 0:
-            return ''
-        # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
-        #                                                                                     ['crowdedness'] == 'busy']
         session.modified = True
+        if len(temp) == 0:
+            return ""
         return "The restaurant allows for assigned seats because it is usually busy."
-    if session['informations']['extra'] == 'touristic':
+    elif session['informations']['extra'] == 'touristic':
         temp = pd.DataFrame(session['informations']['suitable_list'])
-        temp = temp[(temp['pricerange'] == 'cheap') & (temp['food_quality'] == 'good food')] 
+        temp = temp[(temp['pricerange'] == 'cheap') &
+                    (temp['food_quality'] == 'good food')]
         session['informations']['suitable_list'] = temp.to_dict()
-        if len(temp) == 0:
-            return ''
-        # session['informations']['suitable_list'] = session['informations']['suitable_list'][(session['informations']['suitable_list']['pricerange'] == 'cheap') & (
-        #     session['informations']['suitable_list']['food_quality'] == 'good food')]
         session.modified = True
+        if len(temp) == 0:
+            return ""
         return "The restaurant is touristic because it is cheap and it serves good food."
+    else:
+        return ""
 
 
 def lookup_restaurants():
@@ -255,6 +244,7 @@ def get_no_restaurant_found():
     if session['informations']['food'] != None:
         response += utils.caps_check(
             f" serving {session['informations']['food']} food", session['useCL'])
+        
     if session['informations']['extra'] != None:
         # check what requirement was asked an build the answer string
         for word in session['informations']['extra'].split():
@@ -270,9 +260,8 @@ def get_no_restaurant_found():
                     f' that also allows for {word} seats', session['useCL'])
         session['informations']['extra'] = None
         session.modified = True
-    response += utils.caps_check(".", session['useCL'])
+    response += utils.caps_check(".", session['useCL'])    
     return response
-
 
 def get_restaurant_found():
     restaurant = pd.DataFrame(session['informations']['suitable_list']).iloc[0]
@@ -297,6 +286,7 @@ def get_restaurant_found():
         else:
             response = get_no_restaurant_found()
     return response
+
 
 
 def get_ask_area():
@@ -370,19 +360,21 @@ def get_bye():
 
 
 def get_response(user_message):
-    global prev_state
 
     user_input = user_message.lower()
     if user_input == "/state":
-        return "+ STATE: " + prev_state.name
+        return "+ STATE: " + session['state']
     elif user_input == "/debug":
-        return f"+ DEBUG: {str(session['informations'])}, {str(session['useDT']), str(session['useCL']), str(session['useAC'])}"
+        return f"+ DEBUG: {str(session['informations'])}, {str(session['useML']), str(session['useCL']), str(session['useAC'])}"
     elif user_input == "/df":
         return str(pd.DataFrame(session['informations']['suitable_list']))
     ui_class = extract_class(user_input)
 
+    utils.save_msg_on_file(user_input, False)
+
     if ui_class == 'bye':
-        prev_state = State.BYE
+        session['state'] = 13
+        session.modified = True
         return get_bye()
 
     elif ui_class == 'restart':
@@ -390,13 +382,13 @@ def get_response(user_message):
             if info != 'attempt':
                 session['informations'][info] = None
         session['informations']['attempt'] += 1
+        session['state'] = 1
         session.modified = True
-        prev_state = State.WELCOME
         if session['informations']['attempt'] >= 5:
             return " Please leave complete the survey on <a href='https://forms.office.com/Pages/DesignPageV2.aspx?subpage=design&FormId=oFgn10akD06gqkv5WkoQ5z6fwTBqk1NEjDs1bydB55RUNlpQVEc2RzRKRFZIM0lLMERMWTNIM0g0TS4u&Token=7c62bf5a858e4276aace5efa9ccda3ae'>this link</a>."
         return "RESTARTED: " + get_welcome()
 
-    if prev_state == State.WELCOME:
+    if session['state'] == 1:
         if ui_class == 'hello':
             return get_welcome()
         if ui_class == 'inform' or ui_class == 'deny':
@@ -405,98 +397,119 @@ def get_response(user_message):
             lookup_restaurants()
 
             if len(session['informations']['suitable_list']['addr']) == 0:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_no_restaurant_found()
             if len(session['informations']['suitable_list']['addr']) == 1:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_restaurant_found()
 
             if session['informations']['area'] == None:
-                prev_state = State.ASK_AREA
+                session['state'] = 2
+                session.modified = True
                 return get_ask_area()
             elif session['informations']['food'] == None:
-                prev_state = State.ASK_FOOD
+                session['state'] = 3
+                session.modified = True
                 return get_ask_food()
             elif session['informations']['price'] == None:
-                prev_state = State.ASK_PRICE
+                session['state'] = 4
+                session.modified = True
                 return get_ask_price()
             else:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_ask_requirements()
         return "Please provide a food type, area or price range for the restaurant."
 
-    elif prev_state == State.ASK_AREA:
+    elif session['state'] == 2:
         if ui_class == 'inform' or ui_class == 'deny':
+            print(session['informations'])
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
 
             if len(session['informations']['suitable_list']['addr']) == 0:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_no_restaurant_found()
             if len(session['informations']['suitable_list']['addr']) == 1:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_restaurant_found()
 
             elif session['informations']['food'] == None:
-                prev_state = State.ASK_FOOD
+                session['state'] = 3
+                session.modified = True
                 return get_ask_food()
             elif session['informations']['price'] == None:
-                prev_state = State.ASK_PRICE
+                session['state'] = 4
+                session.modified = True
                 return get_ask_price()
             else:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_ask_requirements()
         return "Please provide a food type, area or price range for the restaurant."
 
-    elif prev_state == State.ASK_FOOD:
+    elif session['state'] == 3:
         if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
 
             if len(session['informations']['suitable_list']['addr']) == 0:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_no_restaurant_found()
             if len(session['informations']['suitable_list']['addr']) == 1:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_restaurant_found()
 
             if session['informations']['price'] == None:
-                prev_state = State.ASK_PRICE
+                session['state'] = 4
+                session.modified = True
                 return get_ask_price()
             else:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_ask_requirements()
         return "Please provide a food type, area or price range for the restaurant."
 
-    elif prev_state == State.ASK_PRICE:
+    elif session['state'] == 4:
         if ui_class == 'inform' or ui_class == 'deny':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
 
             if len(session['informations']['suitable_list']['addr']) == 0:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_no_restaurant_found()
             if len(session['informations']['suitable_list']['addr']) == 1:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_restaurant_found()
             else:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_ask_requirements()
 
-    elif prev_state == State.AWAIT_COMMAND:
+    elif session['state'] == 8:
         if ui_class == 'inform':
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
 
             if len(session['informations']['suitable_list']['addr']) == 0:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_no_restaurant_found()
             if len(session['informations']['suitable_list']['addr']) == 1:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_restaurant_found()
 
             for word in ui_split:
@@ -507,20 +520,24 @@ def get_response(user_message):
 
             # if a requirement was given suggest the restaurant
             if session['informations']['extra'] != None:
-                prev_state = State.AWAIT_COMMAND
+                session['state'] = 8
+                session.modified = True
                 return get_restaurant_found()
             # if a requirement wasn't given, user is trying to change the main 3 infos and we go back
             # these 3 checks are probably useless #
             elif session['informations']['area'] == None:  # area not specified -> ask area
-                prev_state = State.ASK_AREA
+                session['state'] = 2
+                session.modified = True
                 return get_ask_area()
             # # food type not specified -> ask food type
             elif session['informations']['food'] == None:
-                prev_state = State.ASK_FOOD
+                session['state'] = 3
+                session.modified = True
                 return get_ask_food()
             # # price range not specified -> ask price range
             elif session['informations']['price'] == None:
-                prev_state = State.ASK_PRICE
+                session['state'] = 4
+                session.modified = True
                 return get_ask_price()
             else:  # if we have all informations but a preference wasn't given, then we ask for them
                 return get_ask_requirements()
@@ -540,20 +557,21 @@ def get_response(user_message):
         elif ui_class == 'reqalts':
             # If there is another restaurant, recommend the different restaurant
             if len(session['informations']['suitable_list']['addr']) > 1:
-                session['informations']['suitable_list'] = (pd.DataFrame(session['informations']['suitable_list'])[1:]).to_dict()
+                session['informations']['suitable_list'] = (pd.DataFrame(
+                    session['informations']['suitable_list'])[1:]).to_dict()
+                session['state'] = 8
                 session.modified = True
-                prev_state = State.AWAIT_COMMAND
                 return get_restaurant_found()
             # If there is no other restaurant, tell the user
-            prev_state = State.AWAIT_COMMAND
+            session['state'] = 8
+            session.modified = True
             return get_no_other_restaurants()
 
+        # elif ui_class == 'negate':
+        #     lookup_restaurants()
 
-        elif ui_class == 'negate':
-            lookup_restaurants()
-
-            if len(session['informations']['suitable_list']['addr']) == 0:  # no restaurant found
-                return State.RESTAURANT_NOT_FOUND
-            else:  # at least one restaurant found
-                return State.RESTAURANT_FOUND
+        #     if len(session['informations']['suitable_list']['addr']) == 0:  # no restaurant found
+        #         return State.RESTAURANT_NOT_FOUND
+        #     else:  # at least one restaurant found
+        #         return State.RESTAURANT_FOUND
     return "Please try again rephrasing the sentence."
