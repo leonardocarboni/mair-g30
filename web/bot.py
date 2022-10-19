@@ -55,7 +55,7 @@ rules = {
     "touristic": (["cheap", "good food"], ["romanian"]),
 }
 
-model, LE, vocab = utils.train_tree(utils.df)
+model, LE, vocab = utils.train_MLP(utils.df)
 
 
 def change_to_lev(user_word):
@@ -94,18 +94,23 @@ def extract_class(user_input):
     :param user_input: The user's input
     :return: The class of the input
     """
-    if session['useDT']:  # decision Tree
+    if session['useDT']:  # MLP
         user_data = np.zeros(len(vocab))
         for word in user_input.split():
+            word = word.replace('?', '') # delete question marks from words
+            if word in rules.keys():
+                return 'inform'
             if session['useAC']:
                 word = change_to_lev(word)
             if word in vocab:
                 user_data[vocab[word]] += 1
             else:
                 user_data[vocab['NEW_WORD']] += 1
+        print(LE.inverse_transform(model.predict(user_data.reshape(1, -1))))
         return LE.inverse_transform(model.predict(user_data.reshape(1, -1)))
     else:  # baseline 2
         for word in user_input.split():  # split prompt into words
+            word = word.replace('?', '') # delete question marks from words
             if session['useAC']:
                 word = change_to_lev(word)
             for key, value in utils.classes.items():  # look for the word in the dictionary
@@ -122,6 +127,7 @@ def extract_params(ui_split):
     :param ui_split: the user input split into a list of words
     """
     for i, word in enumerate(ui_split):
+        word = word.replace('?', '') # delete question marks from words
         prev_word = None
         if session['useAC']:
             word = change_to_lev(word)
@@ -169,13 +175,16 @@ def manage_requirements():
         temp = temp[temp['stay_length'] == 'long stay']
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
         # ['stay_length'] == 'long stay']
+        if len(temp) == 0:
+            return ''
         session['informations']['suitable_list'] = temp.to_dict()
         session.modified = True
         return "The restaurant is romantic because it allows you to stay for a long time."
     if session['informations']['extra'] == 'children':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['stay_length'] == 'short stay']
-        
+        if len(temp) == 0:
+            return ''
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
         #                                                                                     ['stay_length'] == 'short stay']
         session['informations']['suitable_list'] = temp.to_dict()
@@ -184,6 +193,8 @@ def manage_requirements():
     if session['informations']['extra'] == 'assigned':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['crowdedness'] == 'busy']
+        if len(temp) == 0:
+            return ''
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
         #                                                                                     ['crowdedness'] == 'busy']
         session['informations']['suitable_list'] = temp.to_dict()
@@ -247,7 +258,6 @@ def get_no_restaurant_found():
 
 def get_restaurant_found():
     restaurant = pd.DataFrame(session['informations']['suitable_list']).iloc[0]
-    print(restaurant)
     response = utils.caps_check(
         f"{restaurant['restaurantname']} is a nice place", session['useCL'])
     if session['informations']['area'] != None:
@@ -262,8 +272,12 @@ def get_restaurant_found():
     response += "."
 
     if session['informations']['extra'] != None:
-        response += utils.caps_check(" " +
-                                     manage_requirements(), session['useCL'])
+        req = manage_requirements()
+        if req != '':
+            response += utils.caps_check(" " +
+                                     req, session['useCL'])
+        else:
+            response = get_no_other_restaurants()
     return response
 
 
@@ -299,6 +313,7 @@ def get_no_other_restaurants():
     if session['informations']['extra'] != None:
         # check what requirement was asked an build the answer string
         for word in session['informations']['extra'].split():
+            word = word.replace('?', '') # delete question marks from words
             if word == 'romantic' or word == 'touristic':
                 response += utils.caps_check(
                     f' that is also {word}', session['useCL'])
@@ -369,7 +384,6 @@ def get_response(user_message):
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
-            print(session['informations'])
 
             if len(session['informations']['suitable_list']['addr']) == 0:
                 prev_state = State.AWAIT_COMMAND
@@ -390,11 +404,10 @@ def get_response(user_message):
             else:
                 prev_state = State.AWAIT_COMMAND
                 return get_ask_requirements()
-        return "aaaaaaaaaaaaa"
+        return "Please provide a food type, area or price range for the restaurant."
 
     elif prev_state == State.ASK_AREA:
         if ui_class == 'inform' or ui_class == 'deny':
-            print(session['informations'])
             ui_split = user_input.split()
             extract_params(ui_split)
             lookup_restaurants()
@@ -415,7 +428,7 @@ def get_response(user_message):
             else:
                 prev_state = State.AWAIT_COMMAND
                 return get_ask_requirements()
-        return "bbbbbbbbbbbbbb"
+        return "Please provide a food type, area or price range for the restaurant."
 
     elif prev_state == State.ASK_FOOD:
         if ui_class == 'inform' or ui_class == 'deny':
@@ -436,7 +449,7 @@ def get_response(user_message):
             else:
                 prev_state = State.AWAIT_COMMAND
                 return get_ask_requirements()
-        return "cccccccccccccc"
+        return "Please provide a food type, area or price range for the restaurant."
 
     elif prev_state == State.ASK_PRICE:
         if ui_class == 'inform' or ui_class == 'deny':
@@ -468,8 +481,10 @@ def get_response(user_message):
                 return get_restaurant_found()
 
             for word in ui_split:
+                word = word.replace('?', '') # delete question marks from words
                 if word in rules.keys():
                     session['informations']['extra'] = word
+                    session.modified = True
 
             # if a requirement was given suggest the restaurant
             if session['informations']['extra'] != None:
@@ -495,6 +510,7 @@ def get_response(user_message):
             ui_split = user_input.split()
 
             for word in ui_split:
+                word = word.replace('?', '') # delete question marks from words
                 if word == 'postcode' or word == 'post':
                     return get_postcode()
                 elif word == 'address':
@@ -521,4 +537,4 @@ def get_response(user_message):
                 return State.RESTAURANT_NOT_FOUND
             else:  # at least one restaurant found
                 return State.RESTAURANT_FOUND
-    return "not implemented"
+    return "Please try again rephrasing the sentence."
