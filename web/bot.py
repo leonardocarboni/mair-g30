@@ -175,37 +175,40 @@ def manage_requirements():
         temp = temp[temp['stay_length'] == 'long stay']
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
         # ['stay_length'] == 'long stay']
-        if len(temp) == 0:
-            return ''
         session['informations']['suitable_list'] = temp.to_dict()
+        if len(temp) == 0:
+
+            return ''
         session.modified = True
         return "The restaurant is romantic because it allows you to stay for a long time."
     if session['informations']['extra'] == 'children':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['stay_length'] == 'short stay']
+        session['informations']['suitable_list'] = temp.to_dict()
         if len(temp) == 0:
             return ''
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
         #                                                                                     ['stay_length'] == 'short stay']
-        session['informations']['suitable_list'] = temp.to_dict()
         session.modified = True
         return "The restaurant is for children because it allows you to stay for a short time."
     if session['informations']['extra'] == 'assigned':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[temp['crowdedness'] == 'busy']
+        session['informations']['suitable_list'] = temp.to_dict()
         if len(temp) == 0:
             return ''
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][session['informations']['suitable_list']
         #                                                                                     ['crowdedness'] == 'busy']
-        session['informations']['suitable_list'] = temp.to_dict()
         session.modified = True
         return "The restaurant allows for assigned seats because it is usually busy."
     if session['informations']['extra'] == 'touristic':
         temp = pd.DataFrame(session['informations']['suitable_list'])
         temp = temp[(temp['pricerange'] == 'cheap') & (temp['food_quality'] == 'good food')] 
+        session['informations']['suitable_list'] = temp.to_dict()
+        if len(temp) == 0:
+            return ''
         # session['informations']['suitable_list'] = session['informations']['suitable_list'][(session['informations']['suitable_list']['pricerange'] == 'cheap') & (
         #     session['informations']['suitable_list']['food_quality'] == 'good food')]
-        session['informations']['suitable_list'] = temp.to_dict()
         session.modified = True
         return "The restaurant is touristic because it is cheap and it serves good food."
 
@@ -242,7 +245,7 @@ def get_welcome():
 
 def get_no_restaurant_found():
     response = utils.caps_check(
-        "Sorry but there is no other restaurant", session['useCL'])
+        "Sorry but there is no restaurant", session['useCL'])
     if session['informations']['area'] != None:
         response += utils.caps_check(
             f" in the {session['informations']['area']} of town", session['useCL'])
@@ -252,6 +255,21 @@ def get_no_restaurant_found():
     if session['informations']['food'] != None:
         response += utils.caps_check(
             f" serving {session['informations']['food']} food", session['useCL'])
+    if session['informations']['extra'] != None:
+        # check what requirement was asked an build the answer string
+        for word in session['informations']['extra'].split():
+            word = word.replace('?', '') # delete question marks from words
+            if word == 'romantic' or word == 'touristic':
+                response += utils.caps_check(
+                    f' that is also {word}', session['useCL'])
+            if word == 'children':
+                response += utils.caps_check(
+                    f' that is also for {word}', session['useCL'])
+            if word == 'assigned':
+                response += utils.caps_check(
+                    f' that also allows for {word} seats', session['useCL'])
+        session['informations']['extra'] = None
+        session.modified = True
     response += utils.caps_check(".", session['useCL'])
     return response
 
@@ -277,7 +295,7 @@ def get_restaurant_found():
             response += utils.caps_check(" " +
                                      req, session['useCL'])
         else:
-            response = get_no_other_restaurants()
+            response = get_no_restaurant_found()
     return response
 
 
@@ -324,6 +342,7 @@ def get_no_other_restaurants():
                 response += utils.caps_check(
                     f' that also allows for {word} seats', session['useCL'])
         session['informations']['extra'] = None
+        session.modified = True
         
     return response
 
