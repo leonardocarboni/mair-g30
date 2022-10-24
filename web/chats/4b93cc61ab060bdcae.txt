@@ -1,0 +1,31 @@
+[4b93cc61ab060bdcae, dfghj@fghj, ML: False, CL: False, AC: True]
+USER: indian place in the center cheap
+BOT: What other requirements do you have?
+USER: touristic
+BOT: mahal of cambridge is a nice place in the centre of town in the cheap price range serving indian food. The restaurant is touristic because it is cheap and it serves good food.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: romatic chinese place in the south
+BOT: What price range do you want to eat in?
+USER: low
+BOT: What other requirements do you have?
+USER: cheap
+BOT: What other requirements do you have?
+USER: romantic
+BOT: the missing sock is a nice place in the south of town in the cheap price range serving chinese food. The restaurant is romantic because it allows you to stay for a long time.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: italian place south expensive
+BOT: What other requirements do you have?
+USER: romantic
+BOT: frankie and bennys is a nice place in the south of town in the expensive price range serving italian food. The restaurant is romantic because it allows you to stay for a long time.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: french place north
+BOT: restaurant two two is a nice place in the north of town serving french food.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: british place west
+BOT: What price range do you want to eat in?
+USER: moderate
+BOT: saint johns chop house is a nice place in the west of town in the moderate price range serving british food.

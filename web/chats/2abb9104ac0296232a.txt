@@ -1,0 +1,37 @@
+[2abb9104ac0296232a, francesca@hotmail.it, ML: True, CL: False, AC: True]
+USER: hi! 
+BOT: Please provide a food type, area or price range for the restaurant.
+USER: indian, center, cheap, touristic
+BOT: What area of town do you want to eat in?
+USER: center
+BOT: What other requirements do you have?
+USER: touristic
+BOT: mahal of cambridge is a nice place in the centre of town in the cheap price range serving indian food. The restaurant is touristic because it is cheap and it serves good food.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: chinese, south, cheap and romantic
+BOT: What other requirements do you have?
+USER: romantic
+BOT: the missing sock is a nice place in the south of town in the cheap price range serving chinese food. The restaurant is romantic because it allows you to stay for a long time.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: hello!
+BOT: Please provide a food type, area or price range for the restaurant.
+USER: italian, south
+BOT: What price range do you want to eat in?
+USER: expensive
+BOT: What other requirements do you have?
+USER: romantic
+BOT: frankie and bennys is a nice place in the south of town in the expensive price range serving italian food. The restaurant is romantic because it allows you to stay for a long time.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: i want a french restaurant
+BOT: What area of town do you want to eat in?
+USER: north
+BOT: restaurant two two is a nice place in the north of town serving french food.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: a british restaurant in the west
+BOT: What price range do you want to eat in?
+USER: moderate
+BOT: saint johns chop house is a nice place in the west of town in the moderate price range serving british food.

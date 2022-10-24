@@ -1,0 +1,47 @@
+[f97b3e885736d718c6, e@mail, ML: True, CL: False, AC: True]
+USER: indian
+BOT: What area of town do you want to eat in?
+USER: indian
+BOT: What price range do you want to eat in?
+USER: indian
+BOT: What other requirements do you have?
+USER: indian
+BOT: What area of town do you want to eat in?
+USER: rather in the center of the city
+BOT: What price range do you want to eat in?
+USER: cheap
+BOT: What other requirements do you have?
+USER: tourist
+BOT: Please try again rephrasing the sentence.
+USER: touristic
+BOT: mahal of cambridge is a nice place in the centre of town in the cheap price range serving indian food. The restaurant is touristic because it is cheap and it serves good food.
+USER: looking for a place full of chinese
+BOT: Sorry but there is no restaurant in the centre of town in the cheap price range serving chinese food that is also touristic.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: chinese food
+BOT: What area of town do you want to eat in?
+USER: south of the city
+BOT: What price range do you want to eat in?
+USER: cheap
+BOT: What other requirements do you have?
+USER: i want it to be romantic
+BOT: the missing sock is a nice place in the south of town in the cheap price range serving chinese food. The restaurant is romantic because it allows you to stay for a long time.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: an italian place in the south 
+BOT: What price range do you want to eat in?
+USER: i want to pay a lot
+BOT: Please try again rephrasing the sentence.
+USER: expensive
+BOT: What other requirements do you have?
+USER: romantic
+BOT: frankie and bennys is a nice place in the south of town in the expensive price range serving italian food. The restaurant is romantic because it allows you to stay for a long time.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: french food in the north
+BOT: restaurant two two is a nice place in the north of town serving french food.
+USER: start over
+BOT: RESTARTED: Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?
+USER: moderately priced british restaurant in city west
+BOT: saint johns chop house is a nice place in the west of town in the moderate price range serving british food.
