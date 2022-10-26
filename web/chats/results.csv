@@ -1,0 +1,31 @@
+partecipant,session,type,understood,stuck,count
+1,039412d23bc3d53dff,ML,neutral,strongly disagree,3
+1,039412d23bc3d53dff,ML,disagree,strongly disagree,6
+1,039412d23bc3d53dff,ML,strongly disagree,strongly disagree,6
+1,039412d23bc3d53dff,ML,strongly agree,strongly disagree,1
+1,039412d23bc3d53dff,ML,agree,strongly disagree,3
+1,4b93cc61ab060bdcae,BL,agree,strongly disagree,2
+1,4b93cc61ab060bdcae,BL,neutral,strongly disagree,4
+1,4b93cc61ab060bdcae,BL,neutral,strongly disagree,2
+1,4b93cc61ab060bdcae,BL,agree,strongly disagree,1
+1,4b93cc61ab060bdcae,BL,agree,strongly disagree,2
+2,f97b3e885736d718c6,ML,agree,disagree,9
+2,f97b3e885736d718c6,ML,strongly agree,strongly disagree,4
+2,f97b3e885736d718c6,ML,agree,disagree,4
+2,f97b3e885736d718c6,ML,strongly agree,strongly disagree,1
+2,f97b3e885736d718c6,ML,strongly agree,strongly disagree,1
+2,6356d288128446ba97,BL,agree,disagree,5
+2,6356d288128446ba97,BL,strongly agree,disagree,4
+2,6356d288128446ba97,BL,agree,disagree,2
+2,6356d288128446ba97,BL,strongly agree,strongly disagree,1
+2,6356d288128446ba97,BL,agree,disagree,2
+3,2abb9104ac0296232a,ML,disagree,agree,4
+3,2abb9104ac0296232a,ML,neutral,neutral,2
+3,2abb9104ac0296232a,ML,strongly agree,strongly disagree,4
+3,2abb9104ac0296232a,ML,strongly agree,strongly disagree,2
+3,2abb9104ac0296232a,ML,strongly agree,strongly disagree,2
+3,bc8dfc5a33a1ab1c42,BL,strongly agree,strongly disagree,5
+3,bc8dfc5a33a1ab1c42,BL,neutral,neutral,3
+3,bc8dfc5a33a1ab1c42,BL,disagree,agree,6
+3,bc8dfc5a33a1ab1c42,BL,strongly agree,strongly disagree,1
+3,bc8dfc5a33a1ab1c42,BL,strongly agree,strongly disagree,3
