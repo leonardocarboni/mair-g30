@@ -3,3 +3,4 @@
 USER:, hi]
 BOT:, Hello, welcome to the MAIR G30 restaurant system? You can ask for restaurants by area, price range or food type. You can also add additional requirements among: Romantic; Touristic; Children; Assigned seats. How may I help you?]
 USER:, i would like to eat chinese food]
+BOT:, What area of town do you want to eat in?]
