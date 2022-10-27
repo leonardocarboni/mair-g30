@@ -1,0 +1,45 @@
+---
+title: "analysis"
+output: html_document
+date: "2022-10-27"
+---
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(ordinal)
+```
+
+```{r}
+data <- read.csv('results3.csv')
+model <- glmer(count ~ type + (1|partecipant) + (1|trial), data = data, family = poisson())
+summary(model)
+```
+```{r}
+modelInteraction <- glmer(count ~ type *trial+ (1|partecipant) + (1|trial), data = data, family = poisson())
+
+summary(modelInteraction)
+```
+```{r}
+modelInteraction <- glmer(count ~ trial+ (1|partecipant) + (1|trial), data = data, family = poisson())
+
+summary(modelInteraction)
+```
+
+```{r}
+modelInteraction <- glmer(count ~ type *partecipant+ (1|partecipant) + (1|trial), data = data, family = poisson())
+
+summary(modelInteraction)
+```
+
+```{r}
+modelInteraction <- clmm(as.factor(understood) ~ type+ (1|partecipant) + (1|trial), data = data)
+
+summary(modelInteraction)
+```
+```{r}
+modelInteraction <- clmm(as.factor(stuck) ~ type+ (1|partecipant) + (1|trial), data = data)
+
+summary(modelInteraction)
+```
+
