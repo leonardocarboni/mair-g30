@@ -14,22 +14,25 @@ library(ordinal)
 data <- read.csv('results3.csv')
 model <- glmer(count ~ type + (1|partecipant) + (1|trial), data = data, family = poisson())
 summary(model)
-```
-```{r}
-modelInteraction <- glmer(count ~ type *trial+ (1|partecipant) + (1|trial), data = data, family = poisson())
-
-summary(modelInteraction)
-```
-```{r}
-modelInteraction <- glmer(count ~ trial+ (1|partecipant) + (1|trial), data = data, family = poisson())
-
-summary(modelInteraction)
+plot(model)
 ```
 
+
 ```{r}
-modelInteraction <- glmer(count ~ type *partecipant+ (1|partecipant) + (1|trial), data = data, family = poisson())
+modelInteraction <- glmer(count ~ type * trial+ (1|partecipant), data = data, family = poisson())
 
 summary(modelInteraction)
+
+predict(modelInteraction, newdata = data.frame(type=c('ML', 'ML'), trial = c(1, 4), partecipant = c(1,1)), type = 'response')
+```
+```{r}
+model_no_Interaction <- glmer(count ~ trial + type + (1|partecipant), data = data, family = poisson())
+
+summary(model_no_Interaction)
+```
+
+```{r}
+anova(model_no_Interaction, modelInteraction, test = "LRT")
 ```
 
 ```{r}
@@ -41,5 +44,21 @@ summary(modelInteraction)
 modelInteraction <- clmm(as.factor(stuck) ~ type+ (1|partecipant) + (1|trial), data = data)
 
 summary(modelInteraction)
+```
+```{r}
+data2 <- read.csv("result4.csv")
+p <- ggplot(data, aes(x=type, y=count)) + 
+  geom_violin(adjust = 0.6) +
+  geom_boxplot(width=.1, outlier.size=0, fill="grey50")
+p
+```
+```{r}
+
+ggplot(iris, aes(Species, Sepal.Width)) + 
+  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA) + 
+  geom_boxplot(width = .1, outlier.shape = NA) +
+  ggdist::stat_dots(side = "left", dotsize = .3, justification = 1.1, binwidth = .1)
+
+
 ```
 

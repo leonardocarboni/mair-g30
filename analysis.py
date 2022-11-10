@@ -2,7 +2,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+import seaborn as sns
 from scipy import stats
+import ptitprince as pt
 
 data = pd.read_csv('results3.csv')
 print(data[['understood', 'stuck', 'count']].describe())
@@ -93,3 +95,50 @@ was_stuck_data = base_data[(base_data['stuck'] == 'agree') | (base_data['stuck']
 print('Not stuck percentage: ', len(not_stuck_data)*100/ len(base_data))
 print('Neutral stuck percentage: ', len(neutral_stuck_data)*100/ len(base_data))
 print('Was stuck percentage: ', len(was_stuck_data)*100/ len(base_data))
+
+data2 = pd.read_csv('result4.csv')
+
+f, ax = plt.subplots()
+ax = pt.half_violinplot( x = "type", y = "count", data =data2, width = .6)
+ax = sns.stripplot( x = "type", y = "count", data = data2, jitter=0.05, alpha=0.4)
+ax=sns.boxplot(x="type", y="count",data =data2, width = .15)
+plt.xlabel("Classifier type")
+plt.ylabel("Number of turns")
+plt.title("Number of turns distribution between classifier")
+plt.savefig('cloudCount.png', format='png', bbox_inches="tight")
+plt.show()
+
+
+
+f, ax = plt.subplots()
+ax = pt.half_violinplot( x = "type", y = "understood", data =data2, width = .6)
+ax = sns.stripplot( x = "type", y = "understood", data = data2, jitter=0.05, alpha=0.4)
+ax=sns.boxplot(x="type", y="understood",data =data2, width = .15)
+plt.xlabel("Classifier type")
+plt.ylabel("Understood score")
+plt.title("Understood scores distribution between classifier")
+plt.savefig('cloudUnderstood.png', format='png', bbox_inches="tight")
+plt.show()
+
+
+
+f, ax = plt.subplots()
+ax = pt.half_violinplot( x = "type", y = "stuck", data =data2, width = .6)
+ax = sns.stripplot( x = "type", y = "stuck", data = data2, jitter=0.05, alpha=0.4)
+ax=sns.boxplot(x="type", y="stuck",data = data2, width = .15)
+plt.xlabel("Classifier type")
+plt.ylabel("Stuck score")
+plt.title("Stuck scores distribution between classifier")
+plt.savefig('cloudStuck.png', format='png', bbox_inches="tight")
+plt.show()
+
+f, ax = plt.subplots()
+colors = {'ML':'tab:blue', 'BL':'tab:orange'}
+ax = pt.half_violinplot( x = "trial", y = "count",data =data, width = .6 )
+ax = sns.stripplot( x = "trial", y = "count",hue = 'type',data = data, jitter=0.1, alpha=0.4)
+#ax=sns.boxplot(x="trial", y="count",data = data, width = .15)
+plt.xlabel("Trial number")
+plt.ylabel("Number of turns")
+plt.title("Number of turns distribution between trials")
+plt.savefig('cloudTrials.png', format='png', bbox_inches="tight")
+plt.show()
